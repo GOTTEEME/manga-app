@@ -174,12 +174,13 @@ export async function getChaptersByMangaId(id, options = {}) {
       let allChapters = [];
       let currentOffset = 0;
       let hasMore = true;
+      const PAGE_LIMIT = 100; // MangaDex API max per page for chapters
       
       while (hasMore) {
         const res = await axios.get(`${API_BASE}/chapter`, {
           params: {
             manga: id,
-            limit: 500, // Use max limit per request
+            limit: PAGE_LIMIT,
             offset: currentOffset,
             order,
             translatedLanguage,
@@ -203,12 +204,11 @@ export async function getChaptersByMangaId(id, options = {}) {
 
         allChapters = [...allChapters, ...chapters];
         
-        // Check if there are more chapters to fetch
-        if (chapters.length < 500) {
-          hasMore = false;
-        } else {
-          currentOffset += 500;
-        }
+        // Check if there are more chapters to fetch using API totals
+        const total = res.data?.total ?? allChapters.length;
+        const pageSize = res.data?.limit ?? PAGE_LIMIT;
+        currentOffset += pageSize;
+        hasMore = currentOffset < total && chapters.length > 0;
       }
       
       return allChapters;

@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ReadToon.com inspired color palette */
+  --primary-color: #FF6B35;
+  --primary-dark: #E85D2C;
+  --secondary-color: #004E89;
+  --accent-color: #1A659E;
+  --text-primary: #1D3557;
+  --text-secondary: #6C757D;
+  --bg-light: #F8F9FA;
+  --bg-white: #FFFFFF;
+  --border-color: #E9ECEF;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Custom components */
+.btn {
+  @apply py-2 px-4 rounded-lg font-medium transition-all duration-200;
+}
+
+.btn-primary {
+  @apply bg-orange-500 text-white hover:bg-orange-600 shadow-md;
+}
+
+.btn-secondary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 shadow-md;
+}
+
+.card {
+  @apply bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200;
+}
+
+.section-title {
+  @apply text-2xl font-bold mb-4 text-gray-800;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Responsive image container */
+.image-container {
+  @apply w-full h-0 overflow-hidden relative;
+}
+
+.image-container-16-9 {
+  padding-bottom: 56.25%;
+}
+
+.image-container-3-4 {
+  padding-bottom: 133.33%;
+}
+
+.image-container img {
+  @apply absolute top-0 left-0 w-full h-full object-cover;
+}
+
+/* Horizontal scroll container */
+.horizontal-scroll {
+  @apply flex overflow-x-auto space-x-4 pb-4;
+  scrollbar-width: thin;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

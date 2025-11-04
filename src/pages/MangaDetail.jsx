@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { getMangaById, getChaptersByMangaId } from "../api/mangadex";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -13,6 +13,43 @@ export default function MangaDetail() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("chapters");
   const { getTitle, getDescription, isThai } = useLanguage();
+  const [descExpanded, setDescExpanded] = useState(false);
+  const navigate = useNavigate();
+
+  const handleStartReading = () => {
+    if (chaptersLoading || !chapters || chapters.length === 0) return;
+
+    const preferred = isThai ? ["th", "en"] : ["en"];
+    let pool = [];
+    for (const lang of preferred) {
+      const subset = chapters.filter((c) => (c.translatedLanguage || "").toLowerCase() === lang);
+      if (subset.length) {
+        pool = subset;
+        break;
+      }
+    }
+    if (pool.length === 0) pool = chapters.slice();
+
+    const parseChapterNum = (c) => {
+      const n = parseFloat(c.chapter);
+      return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+    };
+
+    pool.sort((a, b) => {
+      const an = parseChapterNum(a);
+      const bn = parseChapterNum(b);
+      if (an !== bn) return an - bn;
+      const ad = a.publishAt ? new Date(a.publishAt).getTime() : Infinity;
+      const bd = b.publishAt ? new Date(b.publishAt).getTime() : Infinity;
+      if (ad !== bd) return ad - bd;
+      return (a.title || "").localeCompare(b.title || "");
+    });
+
+    const first = pool[0];
+    if (first && first.id) {
+      navigate(`/chapter/${first.id}`);
+    }
+  };
 
   // Fetch manga details
   useEffect(() => {
@@ -286,7 +323,23 @@ export default function MangaDetail() {
                 )}
               </div>
 
-              <p className="text-white/90 mb-6 leading-relaxed">{getDescription(manga)}</p>
+              <div className="text-white/90 mb-6 leading-relaxed">
+                <span>
+                  {descExpanded
+                    ? (getDescription(manga) || "")
+                    : ((getDescription(manga) || "").length > 200
+                        ? (getDescription(manga).slice(0, 200).trim() + "...")
+                        : (getDescription(manga) || ""))}
+                </span>
+                {(getDescription(manga) || "").length > 200 && (
+                  <button
+                    className="ml-2 underline text-white hover:text-white/80"
+                    onClick={() => setDescExpanded((v) => !v)}
+                  >
+                    {descExpanded ? (isThai ? "แสดงน้อยลง" : "Show less") : (isThai ? "อ่านเพิ่มเติม" : "Read more")}
+                  </button>
+                )}
+              </div>
 
               {/* Genres */}
               <div className="flex flex-wrap gap-2 mb-6">
@@ -312,7 +365,11 @@ export default function MangaDetail() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-4">
-                <button className="btn bg-white text-primary hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200">
+                <button
+                  onClick={handleStartReading}
+                  disabled={chaptersLoading || chapters.length === 0}
+                  className="btn bg-white text-primary hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
                   {isThai ? "เริ่มอ่าน" : "Start Reading"}
                 </button>
                 <button className="btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-3 px-6 rounded-lg transition-all duration-200">
@@ -388,51 +445,49 @@ export default function MangaDetail() {
               </div>
             ) : chapters.length > 0 ? (
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="max-h-96 overflow-y-auto">
-                  <div className="divide-y divide-gray-200">
-                    {chapters.map((chapter) => (
-                      <Link
-                        key={chapter.id}
-                        to={`/chapter/${chapter.id}`}
-                        className="block hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="px-6 py-4 flex items-center justify-between">
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900">
-                              {chapter.title}
-                              {chapter.translatedLanguage && (
-                                <span className="ml-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
-                                  {chapter.translatedLanguage.toUpperCase()}
-                                </span>
-                              )}
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {chapter.volume && `${isThai ? "เล่ม" : "Volume"} ${chapter.volume}, `}{isThai ? "ตอนที่" : "Chapter"} {chapter.chapter}
-                              {chapter.pages && ` • ${chapter.pages} ${isThai ? "หน้า" : "pages"}`}
-                              {chapter.translatedLanguage && ` • ${chapter.translatedLanguage.toUpperCase()}`}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {isThai ? "วางจำหน่ายเมื่อ" : "Released on"} {formatDate(chapter.publishAt)}
-                            </p>
-                          </div>
-                          <svg
-                            className="w-5 h-5 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M9 5l7 7-7 7"
-                            ></path>
-                          </svg>
+                <div className="divide-y divide-gray-200">
+                  {chapters.map((chapter) => (
+                    <Link
+                      key={chapter.id}
+                      to={`/chapter/${chapter.id}`}
+                      className="block hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="px-6 py-4 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {chapter.title}
+                            {chapter.translatedLanguage && (
+                              <span className="ml-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                                {chapter.translatedLanguage.toUpperCase()}
+                              </span>
+                            )}
+                          </h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {chapter.volume && `${isThai ? "เล่ม" : "Volume"} ${chapter.volume}, `}{isThai ? "ตอนที่" : "Chapter"} {chapter.chapter}
+                            {chapter.pages && ` • ${chapter.pages} ${isThai ? "หน้า" : "pages"}`}
+                            {chapter.translatedLanguage && ` • ${chapter.translatedLanguage.toUpperCase()}`}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {isThai ? "วางจำหน่ายเมื่อ" : "Released on"} {formatDate(chapter.publishAt)}
+                          </p>
                         </div>
-                      </Link>
-                    ))}
-                  </div>
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 5l7 7-7 7"
+                          ></path>
+                        </svg>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
             ) : (

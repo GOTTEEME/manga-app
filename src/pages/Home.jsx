@@ -158,14 +158,26 @@ export default function Home() {
       {/* Hero Section with Featured Carousel */}
       <section className="mb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {isThai ? "ค้นพบการ์ตูนมากมาย" : "Discover Amazing Comics"}
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
+              {isThai ? (
+                <>
+                ยินดีต้อนรับเข้าสู่{" "}
+                <span className="text-[#FF6B35] font-extrabold">Toonsoilnex</span>
+              </>
+              ) : (
+                <>
+                  Discover Amazing <span className="text-blue-600">Comics</span>
+                </>
+              )}
             </h1>
-            <p className="text-gray-600">
-              {isThai ? "สำรวจการ์ตูนหลากหลายประเภท" : "Explore thousands of comics across various genres"}
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              {isThai
+                ? "นี่คือโปรเจกต์แลปของเรา เพื่อทดสอบฝีมือและเครื่องมือในการพัฒนาเว็บแอป"
+                : "Explore thousands of comics across various genres"}
             </p>
           </div>
+
           
           {loading.featured ? (
             <div className="w-full h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">

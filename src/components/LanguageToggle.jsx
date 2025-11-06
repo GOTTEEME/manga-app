@@ -1,21 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 
-export default function LanguageToggle() {
+export default function LanguageToggle({ isOpen, onToggle }) {
   const { currentLanguage, changeLanguage, languages } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLanguageChange = (languageCode) => {
     changeLanguage(languageCode);
-    setIsOpen(false);
+    onToggle(false);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onToggle(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onToggle]);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+        onClick={() => onToggle(!isOpen)}
+        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+          isOpen ? 'bg-gray-100' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+        } transition-colors`}
         aria-label="Select language"
+        aria-expanded={isOpen}
       >
         <span>{languages[currentLanguage].flag}</span>
         <span className="hidden sm:inline">{languages[currentLanguage].name}</span>

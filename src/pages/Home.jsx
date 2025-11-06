@@ -1,241 +1,217 @@
 import { useEffect, useState } from "react";
-import {
-  getMangaList,
-  getPopularManga,
-  getRecentlyUpdatedManga,
-  getCompletedManga
-} from "../api/mangadex";
+import { getPopularManga, getRecentlyUpdatedManga } from "../api/mangadex";
 import MangaCard from "../components/MangaCard";
-import FeaturedCarousel from "../components/FeaturedCarousel";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-
-// Section component for manga lists
-function MangaSection({ title, mangaList, viewAllLink, loading }) {
-  const { isThai } = useLanguage();
-  
-  return (
-    <div className="mb-12">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="section-title">{title}</h2>
-        {viewAllLink && (
-          <Link
-            to={viewAllLink}
-            className="text-primary hover:text-primary-dark font-medium text-sm transition-colors flex items-center"
-          >
-            {isThai ? "ดูทั้งหมด" : "View All"}
-            <svg
-              className="w-4 h-4 ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5l7 7-7 7"
-              ></path>
-            </svg>
-          </Link>
-        )}
-      </div>
-      
-      {loading ? (
-        <div className="flex space-x-4 overflow-hidden">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-48">
-              <div className="h-72 bg-gray-200 rounded-lg animate-pulse"></div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="horizontal-scroll">
-          {mangaList.map((manga) => (
-            <div key={manga.id} className="flex-shrink-0 w-48 sm:w-56">
-              <MangaCard manga={manga} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import FeaturedCarousel from "../components/FeaturedCarousel";
 
 export default function Home() {
-  const [featuredManga, setFeaturedManga] = useState([]);
-  const [popularManga, setPopularManga] = useState([]);
-  const [newUpdatesManga, setNewUpdatesManga] = useState([]);
-  const [completedManga, setCompletedManga] = useState([]);
-  const [loading, setLoading] = useState({
-    featured: true,
-    popular: true,
-    new: true,
-    completed: true,
-  });
-  const [error, setError] = useState(null);
   const { isThai } = useLanguage();
+  const [topManga, setTopManga] = useState([]);
+  const [latestManga, setLatestManga] = useState([]);
+  const [featuredManga, setFeaturedManga] = useState([]);
+  const [loadingTop, setLoadingTop] = useState(true);
+  const [loadingLatest, setLoadingLatest] = useState(true);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [error, setError] = useState("");
+  const PAGE_SIZE = 30;
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch featured manga
   useEffect(() => {
-    async function fetchFeaturedManga() {
+    let cancelled = false;
+    async function fetchFeatured() {
       try {
-        setLoading(prev => ({ ...prev, featured: true }));
-        const data = await getPopularManga({ limit: 5 });
-        setFeaturedManga(data);
-      } catch (err) {
-        console.error("Error fetching featured manga:", err);
-        setError("Failed to load featured manga");
-      } finally {
-        setLoading(prev => ({ ...prev, featured: false }));
-      }
-    }
-
-    fetchFeaturedManga();
-  }, []);
-
-  // Fetch popular manga
-  useEffect(() => {
-    async function fetchPopularManga() {
-      try {
-        setLoading(prev => ({ ...prev, popular: true }));
+        setLoadingFeatured(true);
         const data = await getPopularManga({ limit: 10 });
-        setPopularManga(data);
-      } catch (err) {
-        console.error("Error fetching popular manga:", err);
-        setError("Failed to load popular manga");
+        if (!cancelled) setFeaturedManga(data);
+      } catch (e) {
+        if (!cancelled) setError(isThai ? "ไม่สามารถโหลดสไลด์แนะนำได้" : "Failed to load featured slideshow");
       } finally {
-        setLoading(prev => ({ ...prev, popular: false }));
+        if (!cancelled) setLoadingFeatured(false);
       }
     }
-
-    fetchPopularManga();
-  }, []);
-
-  // Fetch recently updated manga
-  useEffect(() => {
-    async function fetchNewUpdatesManga() {
+    fetchFeatured();
+    async function fetchTop() {
       try {
-        setLoading(prev => ({ ...prev, new: true }));
-        const data = await getRecentlyUpdatedManga({ limit: 10 });
-        setNewUpdatesManga(data);
-      } catch (err) {
-        console.error("Error fetching new updates:", err);
-        setError("Failed to load new updates");
+        setLoadingTop(true);
+        const data = await getPopularManga({ limit: 5 });
+        if (!cancelled) setTopManga(data);
+      } catch (e) {
+        if (!cancelled) setError(isThai ? "ไม่สามารถโหลดการ์ตูนยอดนิยมได้" : "Failed to load top manga");
       } finally {
-        setLoading(prev => ({ ...prev, new: false }));
+        if (!cancelled) setLoadingTop(false);
       }
     }
+    fetchTop();
+    return () => {
+      cancelled = true;
+    };
+  }, [isThai]);
 
-    fetchNewUpdatesManga();
-  }, []);
-
-  // Fetch completed manga
   useEffect(() => {
-    async function fetchCompletedManga() {
+    let cancelled = false;
+    async function fetchLatest() {
       try {
-        setLoading(prev => ({ ...prev, completed: true }));
-        const data = await getCompletedManga({ limit: 10 });
-        setCompletedManga(data);
-      } catch (err) {
-        console.error("Error fetching completed manga:", err);
-        setError("Failed to load completed manga");
+        setLoadingLatest(true);
+        const data = await getRecentlyUpdatedManga({
+          limit: PAGE_SIZE,
+          offset: (currentPage - 1) * PAGE_SIZE,
+          order: { updatedAt: "desc" },
+        });
+        if (!cancelled) setLatestManga(data);
+      } catch (e) {
+        if (!cancelled) setError(isThai ? "ไม่สามารถโหลดอัปเดตล่าสุดได้" : "Failed to load latest updates");
       } finally {
-        setLoading(prev => ({ ...prev, completed: false }));
+        if (!cancelled) setLoadingLatest(false);
       }
     }
+    fetchLatest();
+    return () => {
+      cancelled = true;
+    };
+  }, [isThai, currentPage]);
 
-    fetchCompletedManga();
-  }, []);
+  const getPageNumbers = () => {
+    const pages = [];
+    // Show 5-number window centered around current page when possible
+    let start = Math.max(1, currentPage - 2);
+    let end = start + 4;
+    // Ensure start is at least 1
+    if (currentPage <= 3) {
+      start = 1;
+      end = 5;
+    }
+    for (let p = start; p <= end; p++) {
+      pages.push(p);
+    }
+    return pages;
+  };
 
-  // Check if all sections are still loading
-  const allLoading = Object.values(loading).every(Boolean);
+  // Smoothly scroll to top when changing pages
+  const changePage = (nextPage) => {
+    if (loadingLatest) return;
+    if (nextPage < 1) return;
+    // Blur the focused pagination button to avoid browser keeping it in view
+    if (typeof document !== "undefined") {
+      document.activeElement?.blur();
+    }
+    setCurrentPage(nextPage);
+  };
+
+  // After the latest list finishes loading, scroll to top smoothly
+  useEffect(() => {
+    if (!loadingLatest) {
+      // wait for paint to avoid layout shift fighting the scroll
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  }, [loadingLatest]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section with Featured Carousel */}
-      <section className="mb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-12 text-center">
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
-              {isThai ? (
-                <>
-                ยินดีต้อนรับเข้าสู่{" "}
-                <span className="text-[#FF6B35] font-extrabold">Toonsoilnex</span>
-              </>
-              ) : (
-                <>
-                  Discover Amazing <span className="text-blue-600">Comics</span>
-                </>
-              )}
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {isThai
-                ? "นี่คือโปรเจกต์แลปของเรา เพื่อทดสอบฝีมือและเครื่องมือในการพัฒนาเว็บแอป"
-                : "Explore thousands of comics across various genres"}
-            </p>
-          </div>
-
-          
-          {loading.featured ? (
-            <div className="w-full h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">
-              <LoadingSpinner size="lg" text={isThai ? "กำลังโหลดการ์ตูนแนะนำ..." : "Loading featured comics..."} />
-            </div>
-          ) : featuredManga.length > 0 ? (
-            <FeaturedCarousel items={featuredManga} />
-          ) : (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Slideshow */}
+        <section className="mb-10">
+          {loadingFeatured ? (
             <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  {isThai ? "ไม่มีการ์ตูนแนะนำ" : "No featured comics available"}
-                </h3>
-                <p className="text-gray-500">
-                  {isThai ? "กรุณาลองใหม่ภายหลัง" : "Please try again later"}
-                </p>
-              </div>
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <FeaturedCarousel items={featuredManga} />
+          )}
+        </section>
+
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-8">
+          {isThai ? "การ์ตูน" : "Manga"}
+        </h1>
+
+        {error && (
+          <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
+
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {isThai ? "ท็อป 5 การ์ตูน" : "Top 5 Manga"}
+            </h2>
+          </div>
+          {loadingTop ? (
+            <div className="w-full flex justify-center py-10">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+              {topManga.map((m) => (
+                <MangaCard key={m.id} manga={m} />
+              ))}
             </div>
           )}
-        </div>
-      </section>
+        </section>
 
-      {/* Error Display */}
-      {error && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-            <strong className="font-bold">Error:</strong>
-            <span className="block sm:inline ml-2">{error}</span>
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {isThai ? "อัปเดตล่าสุด" : "Latest Updates"}
+            </h2>
           </div>
-        </div>
-      )}
+          {loadingLatest ? (
+            <div className="w-full flex justify-center py-10">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+              {latestManga.map((m) => (
+                <MangaCard key={m.id} manga={m} />
+              ))}
+            </div>
+          )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Popular Section */}
-        <MangaSection
-          title={isThai ? "การ์ตูนยอดนิยม" : "Popular Comics"}
-          mangaList={popularManga}
-          viewAllLink="/popular"
-          loading={loading.popular}
-        />
+          {/* Pagination */}
+          <div className="mt-8 flex items-center justify-center gap-2 flex-wrap">
+            <button
+              onClick={() => changePage(currentPage - 1)}
+              disabled={currentPage === 1 || loadingLatest}
+              className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
+                currentPage === 1 || loadingLatest
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {isThai ? "ก่อนหน้า" : "Previous"}
+            </button>
 
-        {/* New Updates Section */}
-        <MangaSection
-          title={isThai ? "อัปเดตล่าสุด" : "New Updates"}
-          mangaList={newUpdatesManga}
-          viewAllLink="/new"
-          loading={loading.new}
-        />
+            {getPageNumbers().map((p) => (
+              <button
+                key={p}
+                onClick={() => changePage(p)}
+                disabled={loadingLatest}
+                className={`w-10 h-10 rounded-md border text-sm font-semibold transition-colors ${
+                  p === currentPage
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
 
-        {/* Completed Section */}
-        <MangaSection
-          title={isThai ? "การ์ตูนจบแล้ว" : "Completed Series"}
-          mangaList={completedManga}
-          viewAllLink="/completed"
-          loading={loading.completed}
-        />
-      </main>
+            <button
+              onClick={() => changePage(currentPage + 1)}
+              disabled={loadingLatest}
+              className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
+                loadingLatest
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {isThai ? "ถัดไป" : "Next"}
+            </button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

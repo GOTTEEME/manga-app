@@ -13,6 +13,8 @@ export async function getMangaList(options = {}) {
     publicationDemographic = [],
     status = [],
     tags = [],
+    originalLanguage,
+    includedTags = [], // MangaDex expects UUIDs for tag filters; keep optional
   } = options;
 
   try {
@@ -26,6 +28,9 @@ export async function getMangaList(options = {}) {
         publicationDemographic,
         status,
         tags,
+        originalLanguage,
+        // Axios encodes arrays as includedTags[]=<id>
+        ...(includedTags && includedTags.length ? { includedTags } : {}),
       },
     });
 
@@ -89,6 +94,36 @@ export async function getMangaList(options = {}) {
     console.error("Error fetching manga list:", error);
     throw new Error("Failed to fetch manga list");
   }
+}
+
+// Convenience: fetch manga filtered by category with pagination
+export async function getMangaByCategory(category, options = {}) {
+  const { limit = 20, offset = 0, order = { updatedAt: "desc" } } = options;
+
+  // Map category to originalLanguage per MangaDex
+  let originalLanguage;
+  switch ((category || "all").toLowerCase()) {
+    case "manga":
+      originalLanguage = ["ja"]; // Japanese
+      break;
+    case "manhwa":
+      originalLanguage = ["ko"]; // Korean
+      break;
+    case "manhua":
+      originalLanguage = ["zh-hans", "zh-hant"]; // Chinese simplified & traditional
+      break;
+    default:
+      originalLanguage = undefined; // All
+  }
+
+  return getMangaList({
+    limit,
+    offset,
+    order,
+    originalLanguage,
+    includes: ["cover_art", "author", "artist"],
+    contentRating: ["safe", "suggestive"],
+  });
 }
 
 // Get manga by ID with detailed information
@@ -348,61 +383,4 @@ export async function searchManga(query, options = {}) {
   }
 }
 
-// Get popular manga (by rating or follows)
-export async function getPopularManga(options = {}) {
-  const {
-    limit = 20,
-    offset = 0,
-    order = { followedCount: "desc" }, // or rating: "desc"
-    includes = ["cover_art", "author", "artist"],
-    contentRating = ["safe", "suggestive"],
-  } = options;
-
-  return getMangaList({
-    limit,
-    offset,
-    order,
-    includes,
-    contentRating,
-  });
-}
-
-// Get recently updated manga
-export async function getRecentlyUpdatedManga(options = {}) {
-  const {
-    limit = 20,
-    offset = 0,
-    order = { updatedAt: "desc" },
-    includes = ["cover_art", "author", "artist"],
-    contentRating = ["safe", "suggestive"],
-  } = options;
-
-  return getMangaList({
-    limit,
-    offset,
-    order,
-    includes,
-    contentRating,
-  });
-}
-
-// Get completed manga
-export async function getCompletedManga(options = {}) {
-  const {
-    limit = 20,
-    offset = 0,
-    order = { followedCount: "desc" },
-    includes = ["cover_art", "author", "artist"],
-    contentRating = ["safe", "suggestive"],
-    status = ["completed"],
-  } = options;
-
-  return getMangaList({
-    limit,
-    offset,
-    order,
-    includes,
-    contentRating,
-    status,
-  });
-}
+// (cleaned) Removed unused helpers: getPopularManga, getRecentlyUpdatedManga, getCompletedManga.

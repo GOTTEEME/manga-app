@@ -78,6 +78,7 @@ export default function MangaCard({ manga }) {
             src={imageError ? "https://via.placeholder.com/300x400?text=No+Cover" : coverUrl}
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            loading="lazy"
             onError={handleImageError}
           />
 

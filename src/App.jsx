@@ -3,9 +3,11 @@ import { useState } from "react";
 import Navbar from "./components/Navbar";
 import SearchModal from "./components/SearchModal";
 import Home from "./pages/Home";
+import CategoryPage from "./pages/CategoryPage";
 import MangaDetail from "./pages/MangaDetail";
 import ChapterReader from "./pages/ChapterReader";
 import NotFound from "./pages/NotFound";
+import { CategoryProvider } from "./contexts/CategoryContext";
 
 export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -15,34 +17,36 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        {/* Navbar */}
-        <Navbar openSearch={openSearch} />
+      <CategoryProvider>
+        <div className="min-h-screen bg-gray-50 text-gray-900">
+          {/* Navbar */}
+          <Navbar openSearch={openSearch} />
 
-        {/* Search Modal */}
-        <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
+          {/* Search Modal */}
+          <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
 
-        {/* Main Content */}
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/manga/:id" element={<MangaDetail />} />
-            <Route path="/chapter/:id" element={<ChapterReader />} />
-            <Route path="/popular" element={<Home />} />
-            <Route path="/new" element={<Home />} />
-            <Route path="/completed" element={<Home />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+          {/* Main Content */}
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/category/:category" element={<CategoryPage />} />
+              <Route path="/manga/:id" element={<MangaDetail />} />
+              <Route path="/chapter/:id" element={<ChapterReader />} />
+              <Route path="/popular" element={<Home />} />
+              <Route path="/new" element={<Home />} />
+              <Route path="/completed" element={<Home />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
 
-        {/* Footer */}
-        <footer className="bg-gray-800 text-white py-8 mt-12">
+          {/* Footer */}
+          <footer className="bg-gray-800 text-white py-8 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
                 <h3 className="text-lg font-bold mb-4 text-primary">Toonsoilnex</h3>
                 <p className="text-gray-300 text-sm">
-                  Your ultimate destination for reading comics online. Discover thousands of comics across various genres.
+                  สวัสดีนี้โปรเจคแลปของเรา เราทำการทดลองและทดสอบเครื่องในแอปนี้ขอบคุณที่เข้ามาเทสนะ 
                 </p>
               </div>
               <div>
@@ -75,11 +79,12 @@ export default function App() {
             </div>
             <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
               <p>&copy; {new Date().getFullYear()} Toonsoilnex. All rights reserved.</p>
-              <p className="mt-2">Made with ❤️ for comic lovers</p>
+              <p className="mt-2">Solilnex X TeeMo</p>
             </div>
           </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
+      </CategoryProvider>
     </Router>
   );
 }

@@ -6,7 +6,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 // Reusable NavLink component
 const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
   const baseClasses = isMobile
-    ? "block pl-3 pr-4 py-2 text-base font-medium transition-colors"
+    ? "block pl-3 pr-4 py-2 text-base font-medium transition-colors w-full text-left"
     : "inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors";
 
   const activeClasses = isMobile
@@ -21,7 +21,11 @@ const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
     <Link
       to={to}
       className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
-      onClick={onClick}
+      onClick={(e) => {
+        if (onClick) {
+          onClick(e);
+        }
+      }}
     >
       {children}
     </Link>
@@ -36,34 +40,71 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
     { id: 'manhua', label: { en: 'Manhua', th: 'มังฮัว' } }
   ];
 
+  // Get the current active category from the path
+  const getActiveCategory = () => {
+    const match = activePath.match(/^\/category\/([^/]+)/);
+    return match ? categories.find(cat => cat.id === match[1]) : null;
+  };
+
+  const activeCategory = getActiveCategory();
+  const isActive = activeCategory !== null;
+
+  const handleCategoryClick = (e, id) => {
+    e.preventDefault();
+    onNavigate();
+    // Use a small timeout to ensure the dropdown closes before navigation
+    setTimeout(() => {
+      window.location.href = `/category/${id}`;
+    }, 100);
+  };
+
   if (isMobile) {
     return (
       <div>
         <button
           onClick={onToggle}
           className={`w-full text-left pl-3 pr-4 py-2 text-base font-medium transition-colors flex items-center justify-between ${
-            activePath.startsWith('/category/')
-              ? "text-primary border-l-4 border-primary bg-primary/5"
-              : "text-gray-700 hover:text-primary hover:bg-gray-50"
+            isActive
+              ? "text-primary bg-primary/10"
+              : "text-gray-700 hover:text-primary hover:bg-gray-100"
           } ${isOpen ? 'bg-gray-50' : ''}`}
           aria-expanded={isOpen}
         >
-          {isThai ? "หมวดหมู่" : "Categories"}
+          {activeCategory ? (isThai ? activeCategory.label.th : activeCategory.label.en) : (isThai ? "หมวดหมู่" : "Categories")}
           <ChevronIcon isOpen={isOpen} />
         </button>
         {isOpen && (
           <div className="pl-4">
-            {categories.map(({ id, label }) => (
-              <NavLink
-                key={id}
-                to={`/category/${id}`}
-                isActive={activePath === `/category/${id}`}
-                isMobile={true}
-                onClick={onNavigate}
-              >
-                {isThai ? label.th : label.en}
-              </NavLink>
-            ))}
+            {categories.map(({ id, label }) => {
+              const isActiveItem = activePath === `/category/${id}`;
+              return (
+                <button
+                  key={id}
+                  onClick={(e) => handleCategoryClick(e, id)}
+                  className={`w-full text-left pl-3 pr-4 py-2 text-sm font-medium transition-colors flex items-center ${
+                    isActiveItem 
+                      ? 'bg-primary text-white hover:bg-primary-dark' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span>{isThai ? label.th : label.en}</span>
+                  {isActiveItem && (
+                    <svg
+                      className="ml-auto h-4 w-4 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -74,35 +115,40 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
     <div className="relative">
       <button
         onClick={onToggle}
-        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-          isOpen ? 'bg-gray-100' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+        className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium ${
+          isOpen 
+            ? 'bg-gray-100 text-gray-900' 
+            : isActive 
+              ? 'text-primary hover:bg-primary/10' 
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
         } transition-colors`}
         aria-expanded={isOpen}
       >
-        <span>{isThai ? "หมวดหมู่" : "Categories"}</span>
+        <span>{activeCategory ? (isThai ? activeCategory.label.th : activeCategory.label.en) : (isThai ? "หมวดหมู่" : "Categories")}</span>
         <ChevronIcon isOpen={isOpen} />
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+        <div 
+          className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+          onClick={e => e.stopPropagation()}
+        >
           <div className="py-1">
             {categories.map(({ id, label }) => {
               const isActiveItem = activePath === `/category/${id}`;
               return (
                 <button
                   key={id}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate();
-                    setTimeout(() => { window.location.href = `/category/${id}`; }, 0);
-                  }}
-                  className={`flex items-center w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors ${
-                    isActiveItem ? 'bg-primary text-white hover:bg-primary-dark' : 'text-gray-700'
+                  onClick={(e) => handleCategoryClick(e, id)}
+                  className={`flex items-center w-full px-4 py-2 text-sm text-left transition-colors ${
+                    isActiveItem 
+                      ? 'bg-primary text-white hover:bg-primary-dark' 
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <span>{isThai ? label.th : label.en}</span>
                   {isActiveItem && (
                     <svg
-                      className="w-4 h-4 ml-auto"
+                      className="ml-auto h-4 w-4 text-white"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       xmlns="http://www.w3.org/2000/svg"
@@ -127,12 +173,18 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
 // Reusable Chevron Icon
 const ChevronIcon = ({ isOpen }) => (
   <svg
-    className={`ml-1 h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
+    className={`h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
   >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 9l-7 7-7-7"
+    />
   </svg>
 );
 
@@ -201,6 +253,7 @@ export default function Navbar({ openSearch }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [languageToggleOpen, setLanguageToggleOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const location = useLocation();
   const { isThai } = useLanguage();
 
@@ -253,7 +306,6 @@ export default function Navbar({ openSearch }) {
     { to: "/completed", label: { en: "Completed", th: "จบแล้ว" } },
   ];
 
-
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -267,7 +319,7 @@ export default function Navbar({ openSearch }) {
           <SearchBar isThai={isThai} onClick={handleSearchClick} />
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map(({ to, label }) => (
               <NavLink
                 key={to}
@@ -279,7 +331,7 @@ export default function Navbar({ openSearch }) {
             ))}
 
             {/* Categories Dropdown - Desktop */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <CategoriesDropdown
                 isOpen={activeDropdown === 'categories'}
                 onToggle={() => toggleDropdown('categories')}
@@ -322,8 +374,6 @@ export default function Navbar({ openSearch }) {
                 {isThai ? label.th : label.en}
               </NavLink>
             ))}
-
-            
 
             {/* Mobile Categories Dropdown */}
             <CategoriesDropdown

@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
-import { getPopularManga, getRecentlyUpdatedManga } from "../api/mangadex";
+import { useEffect, useState, useMemo } from "react";
+import { getMangaByCategory } from "../api/mangadex";
 import MangaCard from "../components/MangaCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useLanguage } from "../contexts/LanguageContext";
 import FeaturedCarousel from "../components/FeaturedCarousel";
+import { useCategory } from "../contexts/CategoryContext";
+import { getCategoryLabel } from "../utils/category";
 
 export default function Home() {
   const { isThai } = useLanguage();
+  const { category } = useCategory();
   const [topManga, setTopManga] = useState([]);
   const [latestManga, setLatestManga] = useState([]);
   const [featuredManga, setFeaturedManga] = useState([]);
@@ -17,12 +20,14 @@ export default function Home() {
   const PAGE_SIZE = 30;
   const [currentPage, setCurrentPage] = useState(1);
 
+  const categoryLabel = useMemo(() => getCategoryLabel(category, isThai), [category, isThai]);
+
   useEffect(() => {
     let cancelled = false;
     async function fetchFeatured() {
       try {
         setLoadingFeatured(true);
-        const data = await getPopularManga({ limit: 10 });
+        const data = await getMangaByCategory(category, { limit: 10, order: { followedCount: "desc" } });
         if (!cancelled) setFeaturedManga(data);
       } catch (e) {
         if (!cancelled) setError(isThai ? "ไม่สามารถโหลดสไลด์แนะนำได้" : "Failed to load featured slideshow");
@@ -34,7 +39,7 @@ export default function Home() {
     async function fetchTop() {
       try {
         setLoadingTop(true);
-        const data = await getPopularManga({ limit: 5 });
+        const data = await getMangaByCategory(category, { limit: 5, order: { followedCount: "desc" } });
         if (!cancelled) setTopManga(data);
       } catch (e) {
         if (!cancelled) setError(isThai ? "ไม่สามารถโหลดการ์ตูนยอดนิยมได้" : "Failed to load top manga");
@@ -46,14 +51,14 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [isThai]);
+  }, [isThai, category]);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchLatest() {
       try {
         setLoadingLatest(true);
-        const data = await getRecentlyUpdatedManga({
+        const data = await getMangaByCategory(category, {
           limit: PAGE_SIZE,
           offset: (currentPage - 1) * PAGE_SIZE,
           order: { updatedAt: "desc" },
@@ -69,7 +74,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [isThai, currentPage]);
+  }, [isThai, currentPage, category]);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -122,10 +127,6 @@ export default function Home() {
           )}
         </section>
 
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-8">
-          {isThai ? "การ์ตูน" : "Manga"}
-        </h1>
-
         {error && (
           <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-red-700">
             {error}
@@ -135,7 +136,7 @@ export default function Home() {
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              {isThai ? "ท็อป 5 การ์ตูน" : "Top 5 Manga"}
+              {isThai ? `ท็อป 5 (${categoryLabel})` : `Top 5 (${categoryLabel})`}
             </h2>
           </div>
           {loadingTop ? (
@@ -154,7 +155,7 @@ export default function Home() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              {isThai ? "อัปเดตล่าสุด" : "Latest Updates"}
+              {isThai ? `อัปเดตล่าสุด (${categoryLabel})` : `Latest Updates (${categoryLabel})`}
             </h2>
           </div>
           {loadingLatest ? (

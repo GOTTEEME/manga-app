@@ -20,12 +20,18 @@ export default function MangaDetail() {
   const [descExpanded, setDescExpanded] = useState(false);
   const navigate = useNavigate();
 
-  // Ensure the page starts at the top whenever the user opens a manga detail
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "auto" });
     }
   }, []);
+
+  useEffect(() => {
+    setActiveTab("chapters");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [id]);
 
   const handleStartReading = () => {
     if (chaptersLoading || !chapters || chapters.length === 0) return;

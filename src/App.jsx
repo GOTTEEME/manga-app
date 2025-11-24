@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "./components/Navbar";
 import SearchModal from "./components/SearchModal";
@@ -9,37 +9,28 @@ import ChapterReader from "./pages/ChapterReader";
 import NotFound from "./pages/NotFound";
 import { CategoryProvider } from "./contexts/CategoryContext";
 
-export default function App() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  const openSearch = () => setIsSearchOpen(true);
-  const closeSearch = () => setIsSearchOpen(false);
+function AppLayout({ children, openSearch, closeSearch, isSearchOpen }) {
+  const location = useLocation();
+  const isChapterRoute = location.pathname.startsWith("/chapter/");
 
   return (
-    <Router>
-      <CategoryProvider>
-        <div className="min-h-screen bg-gray-50 text-gray-900">
-          {/* Navbar */}
-          <Navbar openSearch={openSearch} />
+    <CategoryProvider>
+      <div className={isChapterRoute ? "min-h-screen bg-black text-white" : "min-h-screen bg-gray-50 text-gray-900"}>
+        {!isChapterRoute && (
+          <>
+            {/* Navbar */}
+            <Navbar openSearch={openSearch} />
 
-          {/* Search Modal */}
-          <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
+            {/* Search Modal */}
+            <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
+          </>
+        )}
 
-          {/* Main Content */}
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/category/:category" element={<CategoryPage />} />
-              <Route path="/manga/:id" element={<MangaDetail />} />
-              <Route path="/chapter/:id" element={<ChapterReader />} />
-              <Route path="/popular" element={<Home />} />
-              <Route path="/new" element={<Home />} />
-              <Route path="/completed" element={<Home />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
+        {/* Main Content */}
+        <main>{children}</main>
 
-          {/* Footer */}
+        {!isChapterRoute && (
+          /* Footer */
           <footer className="bg-gray-800 text-white py-8 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -83,8 +74,32 @@ export default function App() {
             </div>
           </div>
           </footer>
-        </div>
-      </CategoryProvider>
+        )}
+      </div>
+    </CategoryProvider>
+  );
+}
+
+export default function App() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const openSearch = () => setIsSearchOpen(true);
+  const closeSearch = () => setIsSearchOpen(false);
+
+  return (
+    <Router>
+      <AppLayout openSearch={openSearch} closeSearch={closeSearch} isSearchOpen={isSearchOpen}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
+          <Route path="/manga/:id" element={<MangaDetail />} />
+          <Route path="/chapter/:id" element={<ChapterReader />} />
+          <Route path="/popular" element={<Home />} />
+          <Route path="/new" element={<Home />} />
+          <Route path="/completed" element={<Home />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AppLayout>
     </Router>
   );
 }

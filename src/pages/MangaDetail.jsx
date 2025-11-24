@@ -64,7 +64,9 @@ export default function MangaDetail() {
 
     const first = pool[0];
     if (first && first.id) {
-      navigate(`/chapter/${first.id}`);
+      navigate(`/chapter/${first.id}`, {
+        state: { mangaTitle: getTitle(manga) },
+      });
     }
   };
 
@@ -525,6 +527,7 @@ export default function MangaDetail() {
                     <Link
                       key={chapter.id}
                       to={`/chapter/${chapter.id}`}
+                      state={{ mangaTitle: getTitle(manga) }}
                       className="block hover:bg-gray-50 transition-colors"
                     >
                       <div className="px-6 py-4 flex items-center justify-between">

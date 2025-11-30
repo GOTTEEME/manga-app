@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { getChapterPages, getChaptersByMangaId } from "../api/mangadex";
 
@@ -29,13 +29,19 @@ export default function ChapterReader({
   const [chaptersLoading, setChaptersLoading] = useState(false);
   const [chaptersError, setChaptersError] = useState(null);
   const [chaptersFetchedFor, setChaptersFetchedFor] = useState(null);
+  const [navBusy, setNavBusy] = useState(false);
 
   const scrollContainerRef = useRef(null);
   const imageRefs = useRef({});
   const observerRef = useRef(null);
   const visibilityMapRef = useRef({});
+  const suppressClickRef = useRef(false);
+
   const effectivePages = Array.isArray(pages) && pages.length > 0 ? pages : internalPages;
   const totalPages = Array.isArray(effectivePages) ? effectivePages.length : 0;
+
+  // Title resolved early so hooks below can reference it safely
+  const title = mangaTitle || stateMangaTitle || "Chapter Reader";
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -139,15 +145,24 @@ export default function ChapterReader({
 
   // When changing to a new chapter, reset scroll position and active page index
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      try {
-        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
-      } catch (_) {
-        scrollContainerRef.current.scrollTop = 0;
+    const reset = () => {
+      const el = scrollContainerRef.current;
+      if (el) {
+        try { el.scrollTo({ top: 0, behavior: "auto" }); } catch (_) { el.scrollTop = 0; }
       }
+      try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (_) { /* noop */ }
+    };
+    reset();
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => reset());
     }
+    const t = setTimeout(() => reset(), 60);
     visibilityMapRef.current = {};
     setActivePage(0);
+    // Clear previous chapter pages so UI reflects navigation immediately
+    setInternalPages([]);
+    setError(null);
+    return () => { clearTimeout(t); };
   }, [id]);
 
   // Resolve mangaId from chapter if not provided (supports direct URL navigation)
@@ -156,9 +171,10 @@ export default function ChapterReader({
     async function resolveManga() {
       if (resolvedMangaId || !id) return;
       try {
-        const res = await fetch(`https://api.mangadex.org/chapter/${id}`);
+        const res = await fetch(`/api/chapter/${id}`);
         if (!res.ok) return;
         const data = await res.json();
+
         const rels = data?.data?.relationships || [];
         const mangaRel = rels.find((r) => r.type === "manga");
         if (!cancelled && mangaRel?.id) {
@@ -171,6 +187,77 @@ export default function ChapterReader({
     resolveManga();
     return () => { cancelled = true; };
   }, [id, resolvedMangaId]);
+
+  // Ensure chapters are loaded for navigation even if the chapter panel isn't opened (lightweight)
+  useEffect(() => {
+    const mangaId = resolvedMangaId;
+    if (!mangaId) return;
+    if (chaptersFetchedFor === mangaId || chaptersLoading || (chapters && chapters.length > 0)) return;
+
+    let cancelled = false;
+    async function loadChaptersForNav() {
+      try {
+        setChaptersLoading(true);
+        setChaptersError(null);
+        // Ensure current chapter exists in the list by fetching all languages and all pages once
+        const list = await getChaptersByMangaId(mangaId, { fetchAll: true, order: { chapter: "asc" }, translatedLanguage: undefined });
+
+        if (!cancelled) {
+          const normalized = (list || []).slice().sort((a, b) => {
+            const na = parseFloat(a.chapter);
+            const nb = parseFloat(b.chapter);
+            const aNum = isNaN(na) ? Infinity : na;
+            const bNum = isNaN(nb) ? Infinity : nb;
+            if (aNum === bNum) return String(a.chapter).localeCompare(String(b.chapter));
+            return aNum - bNum;
+          });
+          setChapters(normalized);
+          setChaptersFetchedFor(mangaId);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setChaptersError(e.message || "Failed to load chapters.");
+        }
+      } finally {
+        if (!cancelled) {
+          setChaptersLoading(false);
+        }
+      }
+    }
+    loadChaptersForNav();
+    return () => { cancelled = true; };
+  }, [resolvedMangaId, chaptersFetchedFor, chaptersLoading, chapters]);
+
+  // Current chapter index and navigation availability
+  const currentIndex = useMemo(() => {
+    if (!chapters || chapters.length === 0) return -1;
+    return chapters.findIndex((c) => c.id === id);
+  }, [chapters, id]);
+
+  const canPrev = currentIndex > 0;
+  const canNext = currentIndex >= 0 && currentIndex < (chapters?.length ?? 0) - 1;
+
+  // Internal fallback navigation if parent didn't pass handlers
+  const internalPrevChapter = useCallback(() => {
+    if (!canPrev) return;
+    const prevId = chapters[currentIndex - 1]?.id;
+    if (prevId) {
+      const newPath = location.pathname.replace(id, prevId);
+      navigate(newPath, { state: { mangaId: resolvedMangaId, mangaTitle: title } });
+    }
+  }, [canPrev, chapters, currentIndex, location.pathname, id, navigate, resolvedMangaId, title]);
+
+  const internalNextChapter = useCallback(() => {
+    if (!canNext) return;
+    const nextId = chapters[currentIndex + 1]?.id;
+    if (nextId) {
+      const newPath = location.pathname.replace(id, nextId);
+      navigate(newPath, { state: { mangaId: resolvedMangaId, mangaTitle: title } });
+    }
+  }, [canNext, chapters, currentIndex, location.pathname, id, navigate, resolvedMangaId, title]);
+
+  const prevHandler = onPrevChapter || (canPrev ? internalPrevChapter : null);
+  const nextHandler = onNextChapter || (canNext ? internalNextChapter : null);
 
   // Load chapters when panel opens the first time for this manga
   useEffect(() => {
@@ -226,7 +313,47 @@ export default function ChapterReader({
     return ((activePage + 1) / totalPages) * 100;
   }, [activePage, totalPages]);
 
-  const title = mangaTitle || stateMangaTitle || "Chapter Reader";
+  const safeCall = useCallback(async (fn) => {
+    if (!fn || navBusy) return;
+    try {
+      setNavBusy(true);
+      const result = fn();
+      if (result && typeof result.then === "function") {
+        await result;
+      }
+    } finally {
+      setNavBusy(false);
+    }
+  }, [navBusy]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const target = e.target;
+      // Avoid interfering with typing
+      if (
+        target && (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable
+        )
+      ) {
+        return;
+      }
+      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "j") {
+        if (prevHandler && !navBusy && !loading) {
+          e.preventDefault();
+          safeCall(prevHandler);
+        }
+      } else if (e.key === "ArrowRight" || e.key.toLowerCase() === "k") {
+        if (nextHandler && !navBusy && !loading) {
+          e.preventDefault();
+          safeCall(nextHandler);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [prevHandler, nextHandler, navBusy, loading, safeCall]);
 
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
@@ -405,7 +532,9 @@ export default function ChapterReader({
                     src={src}
                     alt={`Page ${index + 1}`}
                     className="w-full h-auto rounded-sm sm:rounded-md shadow-sm select-none"
-                    loading={index < 3 ? "eager" : "lazy"}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchPriority={index === 0 ? "high" : "low"}
+                    decoding="async"
                   />
                 </div>
               ))}
@@ -608,18 +737,44 @@ export default function ChapterReader({
             <div className="flex items-center gap-3 text-sm sm:text-base">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={onPrevChapter}
-                  disabled={!onPrevChapter}
+                  onClick={(e) => {
+                    if (suppressClickRef.current) { suppressClickRef.current = false; return; }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    safeCall(prevHandler);
+                  }}
+                  onTouchEnd={(e) => {
+                    suppressClickRef.current = true;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    safeCall(prevHandler);
+                  }}
+                  disabled={!prevHandler || navBusy || loading}
                   className="px-3.5 sm:px-4 py-2 rounded-full text-sm sm:text-base bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Previous chapter"
+                  title="Previous chapter (← or J)"
                 >
                   Prev
                 </button>
               </div>
               <div className="ml-auto flex items-center gap-2">
                 <button
-                  onClick={onNextChapter}
-                  disabled={!onNextChapter}
+                  onClick={(e) => {
+                    if (suppressClickRef.current) { suppressClickRef.current = false; return; }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    safeCall(nextHandler);
+                  }}
+                  onTouchEnd={(e) => {
+                    suppressClickRef.current = true;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    safeCall(nextHandler);
+                  }}
+                  disabled={!nextHandler || navBusy || loading}
                   className="px-3.5 sm:px-4 py-2 rounded-full text-sm sm:text-base bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Next chapter"
+                  title="Next chapter (→ or K)"
                 >
                   Next
                 </button>

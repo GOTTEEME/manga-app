@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE = "https://api.mangadex.org";
+const API_BASE = import.meta.env.DEV ? "/api" : "https://api.mangadex.org";
+const UPLOADS_BASE = import.meta.env.DEV ? "/covers" : "https://uploads.mangadex.org";
 
 // Get manga list with various filters
 export async function getMangaList(options = {}) {
@@ -58,7 +59,7 @@ export async function getMangaList(options = {}) {
       
       // Get cover URL with proper size
       const coverUrl = cover
-        ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}`
+        ? `${UPLOADS_BASE}/covers/${manga.id}/${cover.attributes.fileName}.256.jpg`
         : "https://via.placeholder.com/300x450?text=No+Cover";
 
       // Get publication year
@@ -159,7 +160,7 @@ export async function getMangaById(id) {
     
     // Get cover URL with better size
     const coverUrl = cover
-      ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}`
+      ? `${UPLOADS_BASE}/covers/${manga.id}/${cover.attributes.fileName}.512.jpg`
       : "https://via.placeholder.com/500x700?text=No+Cover";
 
     // Get additional details
@@ -211,17 +212,37 @@ export async function getChaptersByMangaId(id, options = {}) {
       let hasMore = true;
       const PAGE_LIMIT = 100; // MangaDex API max per page for chapters
       
+      async function fetchPage(offset) {
+        try {
+          return await axios.get(`${API_BASE}/chapter`, {
+            params: {
+              manga: id,
+              limit: PAGE_LIMIT,
+              offset,
+              order,
+              translatedLanguage,
+              groups,
+            },
+            timeout: 10000,
+          });
+        } catch (err) {
+          // Retry once on timeout or network error
+          return await axios.get(`${API_BASE}/chapter`, {
+            params: {
+              manga: id,
+              limit: PAGE_LIMIT,
+              offset,
+              order,
+              translatedLanguage,
+              groups,
+            },
+            timeout: 15000,
+          });
+        }
+      }
+
       while (hasMore) {
-        const res = await axios.get(`${API_BASE}/chapter`, {
-          params: {
-            manga: id,
-            limit: PAGE_LIMIT,
-            offset: currentOffset,
-            order,
-            translatedLanguage,
-            groups,
-          },
-        });
+        const res = await fetchPage(currentOffset);
 
         const chapters = res.data.data.map((chapter) => ({
           id: chapter.id,
@@ -249,16 +270,20 @@ export async function getChaptersByMangaId(id, options = {}) {
       return allChapters;
     } else {
       // Original behavior for non-fetchAll requests
-      const res = await axios.get(`${API_BASE}/chapter`, {
-        params: {
-          manga: id,
-          limit,
-          offset,
-          order,
-          translatedLanguage,
-          groups,
-        },
-      });
+      async function fetchOnce() {
+        try {
+          return await axios.get(`${API_BASE}/chapter`, {
+            params: { manga: id, limit, offset, order, translatedLanguage, groups },
+            timeout: 10000,
+          });
+        } catch (err) {
+          return await axios.get(`${API_BASE}/chapter`, {
+            params: { manga: id, limit, offset, order, translatedLanguage, groups },
+            timeout: 15000,
+          });
+        }
+      }
+      const res = await fetchOnce();
 
       return res.data.data.map((chapter) => ({
         id: chapter.id,
@@ -284,20 +309,38 @@ export async function getChaptersByMangaId(id, options = {}) {
 export async function getChapterPages(chapterId) {
   try {
     // Get the at-home server URL for this chapter
-    const res = await axios.get(`${API_BASE}/at-home/server/${chapterId}`);
+    async function fetchServer() {
+      try {
+        return await axios.get(`${API_BASE}/at-home/server/${chapterId}`, { timeout: 10000 });
+      } catch (err) {
+        return await axios.get(`${API_BASE}/at-home/server/${chapterId}`, { timeout: 15000 });
+      }
+    }
+    const res = await fetchServer();
     
     const { baseUrl, chapter } = res.data;
     const { hash, data, dataSaver } = chapter;
     
-    // Return both full quality and data-saver quality URLs
+    // In development, route through Vite proxy paths to avoid CORS/hotlink blocks.
+    const buildUrl = (kind, filename) => {
+      if (import.meta.env.DEV) {
+        // Use proxied routes configured in vite.config: /data and /data-saver
+        return `/${kind}/${hash}/${filename}`;
+      }
+      return `${baseUrl}/${kind}/${hash}/${filename}`;
+    };
+
+    const pagesFull = (data || []).map((f) => buildUrl('data', f));
+    const pagesSaver = (dataSaver || []).map((f) => buildUrl('data-saver', f));
+
     return {
       baseUrl,
       hash,
-      pages: data.map((filename) => `${baseUrl}/data/${hash}/${filename}`),
-      pagesDataSaver: dataSaver.map((filename) => `${baseUrl}/data-saver/${hash}/${filename}`),
+      pages: pagesFull,
+      pagesDataSaver: pagesSaver,
       quality: {
-        full: data.map((filename) => `${baseUrl}/data/${hash}/${filename}`),
-        dataSaver: dataSaver.map((filename) => `${baseUrl}/data-saver/${hash}/${filename}`),
+        full: pagesFull,
+        dataSaver: pagesSaver,
       },
     };
   } catch (error) {
@@ -354,7 +397,7 @@ export async function searchManga(query, options = {}) {
       
       // Get cover URL
       const coverUrl = cover
-        ? `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}`
+        ? `${UPLOADS_BASE}/covers/${manga.id}/${cover.attributes.fileName}`
         : "https://via.placeholder.com/300x450?text=No+Cover";
 
       return {

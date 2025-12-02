@@ -202,6 +202,7 @@ export async function getChaptersByMangaId(id, options = {}) {
     translatedLanguage = ["en", "th"], // Include Thai by default
     groups = [],
     fetchAll = false, // New option to fetch all chapters
+    signal,
   } = options;
 
   try {
@@ -224,9 +225,9 @@ export async function getChaptersByMangaId(id, options = {}) {
               groups,
             },
             timeout: 10000,
+            signal,
           });
         } catch (err) {
-          // Retry once on timeout or network error
           return await axios.get(`${API_BASE}/chapter`, {
             params: {
               manga: id,
@@ -237,6 +238,7 @@ export async function getChaptersByMangaId(id, options = {}) {
               groups,
             },
             timeout: 15000,
+            signal,
           });
         }
       }
@@ -275,11 +277,13 @@ export async function getChaptersByMangaId(id, options = {}) {
           return await axios.get(`${API_BASE}/chapter`, {
             params: { manga: id, limit, offset, order, translatedLanguage, groups },
             timeout: 10000,
+            signal,
           });
         } catch (err) {
           return await axios.get(`${API_BASE}/chapter`, {
             params: { manga: id, limit, offset, order, translatedLanguage, groups },
             timeout: 15000,
+            signal,
           });
         }
       }
@@ -300,20 +304,24 @@ export async function getChaptersByMangaId(id, options = {}) {
       }));
     }
   } catch (error) {
+    if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') {
+      throw error;
+    }
     console.error(`Error fetching chapters for manga ${id}:`, error);
     throw new Error(`Failed to fetch chapters: ${error.message}`);
   }
 }
 
 // Get chapter pages for reading
-export async function getChapterPages(chapterId) {
+export async function getChapterPages(chapterId, options = {}) {
+  const { signal } = options;
   try {
     // Get the at-home server URL for this chapter
     async function fetchServer() {
       try {
-        return await axios.get(`${API_BASE}/at-home/server/${chapterId}`, { timeout: 10000 });
+        return await axios.get(`${API_BASE}/at-home/server/${chapterId}`, { timeout: 10000, signal });
       } catch (err) {
-        return await axios.get(`${API_BASE}/at-home/server/${chapterId}`, { timeout: 15000 });
+        return await axios.get(`${API_BASE}/at-home/server/${chapterId}`, { timeout: 15000, signal });
       }
     }
     const res = await fetchServer();
@@ -344,6 +352,9 @@ export async function getChapterPages(chapterId) {
       },
     };
   } catch (error) {
+    if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') {
+      throw error;
+    }
     console.error(`Error fetching pages for chapter ${chapterId}:`, error);
     throw new Error(`Failed to fetch chapter pages: ${error.message}`);
   }

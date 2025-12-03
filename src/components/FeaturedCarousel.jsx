@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+function getHeroCoverUrl(coverUrl) {
+  if (!coverUrl) return coverUrl;
+  // If this is a MangaDex-sized cover like ...fileName.256.jpg, try a 512 variant for sharper hero images
+  if (coverUrl.includes(".256.")) {
+    return coverUrl.replace(".256.", ".512.");
+  }
+  return coverUrl;
+}
+
 export default function FeaturedCarousel({ items = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -48,6 +57,7 @@ export default function FeaturedCarousel({ items = [] }) {
   }
 
   const currentItem = items[currentIndex];
+  const heroCoverUrl = getHeroCoverUrl(currentItem.coverUrl);
 
   return (
     <div className="relative w-full h-96 bg-gradient-to-r from-primary to-secondary rounded-lg overflow-hidden shadow-lg group">
@@ -57,7 +67,7 @@ export default function FeaturedCarousel({ items = [] }) {
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-black opacity-40"></div>
           <img
-            src={currentItem.coverUrl}
+            src={heroCoverUrl}
             alt={currentItem.title}
             className="w-full h-full object-cover"
             onError={(e) => {

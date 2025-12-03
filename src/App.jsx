@@ -6,6 +6,8 @@ import Home from "./pages/Home";
 import CategoryPage from "./pages/CategoryPage";
 import MangaDetail from "./pages/MangaDetail";
 import ChapterReader from "./pages/ChapterReader";
+import DoujinPage from "./pages/DoujinPage";
+import CompletedPage from "./pages/CompletedPage";
 import NotFound from "./pages/NotFound";
 import { CategoryProvider } from "./contexts/CategoryContext";
 
@@ -94,9 +96,10 @@ export default function App() {
           <Route path="/category/:category" element={<CategoryPage />} />
           <Route path="/manga/:id" element={<MangaDetail />} />
           <Route path="/chapter/:id" element={<ChapterReader />} />
+          <Route path="/doujin" element={<DoujinPage />} />
           <Route path="/popular" element={<Home />} />
           <Route path="/new" element={<Home />} />
-          <Route path="/completed" element={<Home />} />
+          <Route path="/completed" element={<CompletedPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>

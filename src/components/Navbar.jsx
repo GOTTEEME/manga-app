@@ -1,7 +1,5 @@
 import { useState, useRef, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import LanguageToggle from "./LanguageToggle";
-import { useLanguage } from "../contexts/LanguageContext";
 
 // Reusable NavLink component
 const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
@@ -29,11 +27,11 @@ const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
 };
 
 // Categories Dropdown Component
-const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, activePath }) => {
+const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath }) => {
   const categories = [
-    { id: 'manga', label: { en: 'Manga', th: 'มังงะ' } },
-    { id: 'manhwa', label: { en: 'Manhwa', th: 'มังฮวา' } },
-    { id: 'manhua', label: { en: 'Manhua', th: 'มังฮัว' } }
+    { id: 'manga', label: 'มังงะ' },
+    { id: 'manhwa', label: 'มังฮวา' },
+    { id: 'manhua', label: 'มังฮัว' }
   ];
 
   if (isMobile) {
@@ -48,7 +46,7 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
           } ${isOpen ? 'bg-gray-50' : ''}`}
           aria-expanded={isOpen}
         >
-          {isThai ? "หมวดหมู่" : "Categories"}
+          หมวดหมู่
           <ChevronIcon isOpen={isOpen} />
         </button>
         {isOpen && (
@@ -61,7 +59,7 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
                 isMobile={true}
                 onClick={onNavigate}
               >
-                {isThai ? label.th : label.en}
+                {label}
               </NavLink>
             ))}
           </div>
@@ -79,7 +77,7 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
         } transition-colors`}
         aria-expanded={isOpen}
       >
-        <span>{isThai ? "หมวดหมู่" : "Categories"}</span>
+        <span>หมวดหมู่</span>
         <ChevronIcon isOpen={isOpen} />
       </button>
       {isOpen && (
@@ -99,7 +97,7 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, isThai, ac
                     isActiveItem ? 'bg-primary text-white hover:bg-primary-dark' : 'text-gray-700'
                   }`}
                 >
-                  <span>{isThai ? label.th : label.en}</span>
+                  <span>{label}</span>
                   {isActiveItem && (
                     <svg
                       className="w-4 h-4 ml-auto"
@@ -137,12 +135,12 @@ const ChevronIcon = ({ isOpen }) => (
 );
 
 // Search Bar Component
-const SearchBar = ({ isThai, onClick, isMobile = false }) => (
+const SearchBar = ({ onClick, isMobile = false }) => (
   <div className={isMobile ? "px-3 py-2" : "hidden md:block flex-1 max-w-md mx-8"}>
     <div className="relative">
       <input
         type="text"
-        placeholder={isThai ? "ค้นหาการ์ตูน..." : "Search comics..."}
+        placeholder="ค้นหาการ์ตูน..."
         onClick={onClick}
         className="w-full py-2 px-4 pr-10 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:bg-white focus:border-primary transition-colors cursor-pointer"
         readOnly
@@ -200,30 +198,17 @@ const MobileMenuButton = ({ isOpen, onClick }) => (
 export default function Navbar({ openSearch }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [languageToggleOpen, setLanguageToggleOpen] = useState(false);
   const location = useLocation();
-  const { isThai } = useLanguage();
 
   const toggleDropdown = useCallback((dropdownName) => {
     setActiveDropdown(prev => {
-      // If clicking the same dropdown, close it
       if (prev === dropdownName) return null;
-      // Otherwise open the clicked dropdown
       return dropdownName;
     });
-    // Close language toggle when opening a dropdown
-    setLanguageToggleOpen(false);
-  }, []);
-
-  const handleLanguageToggle = useCallback((isOpen) => {
-    setLanguageToggleOpen(isOpen);
-    // Close other dropdowns when opening language toggle
-    if (isOpen) setActiveDropdown(null);
   }, []);
 
   const closeAllDropdowns = useCallback(() => {
     setActiveDropdown(null);
-    setLanguageToggleOpen(false);
     setIsMenuOpen(false);
   }, []);
 
@@ -241,18 +226,15 @@ export default function Navbar({ openSearch }) {
     setIsMenuOpen(newIsMenuOpen);
     if (!newIsMenuOpen) {
       closeAllDropdowns();
-    } else {
-      setLanguageToggleOpen(false);
     }
   }, [isMenuOpen, closeAllDropdowns]);
 
   // Navigation links data
   const navLinks = [
-    { to: "/", label: { en: "Home", th: "หน้าแรก" } },
-    { to: "/new", label: { en: "New Updates", th: "อัปเดตล่าสุด" } },
-    { to: "/completed", label: { en: "Completed", th: "จบแล้ว" } },
+    { to: "/", label: "หน้าแรก" },
+    { to: '/doujin', label: 'โดจิน' },
+    { to: "/completed", label: "จบแล้ว" },
   ];
-
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -264,7 +246,7 @@ export default function Navbar({ openSearch }) {
           </Link>
 
           {/* Desktop Search */}
-          <SearchBar isThai={isThai} onClick={handleSearchClick} />
+          <SearchBar onClick={handleSearchClick} />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
@@ -274,7 +256,7 @@ export default function Navbar({ openSearch }) {
                 to={to}
                 isActive={location.pathname === to}
               >
-                {isThai ? label.th : label.en}
+                {label}
               </NavLink>
             ))}
 
@@ -284,16 +266,7 @@ export default function Navbar({ openSearch }) {
                 isOpen={activeDropdown === 'categories'}
                 onToggle={() => toggleDropdown('categories')}
                 onNavigate={handleNavigation}
-                isThai={isThai}
                 activePath={location.pathname}
-              />
-            </div>
-
-            {/* Language Toggle - Desktop */}
-            <div className="language-toggle-container">
-              <LanguageToggle 
-                isOpen={languageToggleOpen} 
-                onToggle={handleLanguageToggle} 
               />
             </div>
           </nav>
@@ -308,7 +281,7 @@ export default function Navbar({ openSearch }) {
         <div className="md:hidden bg-white border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {/* Mobile Search */}
-            <SearchBar isThai={isThai} onClick={handleSearchClick} isMobile />
+            <SearchBar onClick={handleSearchClick} isMobile />
 
             {/* Mobile Navigation Links */}
             {navLinks.map(({ to, label }) => (
@@ -319,7 +292,7 @@ export default function Navbar({ openSearch }) {
                 isMobile
                 onClick={closeAllDropdowns}
               >
-                {isThai ? label.th : label.en}
+                {label}
               </NavLink>
             ))}
 
@@ -331,17 +304,8 @@ export default function Navbar({ openSearch }) {
               isOpen={activeDropdown === 'mobileCategories'}
               onToggle={() => toggleDropdown('mobileCategories')}
               onNavigate={handleNavigation}
-              isThai={isThai}
               activePath={location.pathname}
             />
-
-            {/* Language Toggle - Mobile */}
-            <div className="language-toggle-container w-full px-3 py-2">
-              <LanguageToggle 
-                isOpen={languageToggleOpen} 
-                onToggle={handleLanguageToggle} 
-              />
-            </div>
           </div>
         </div>
       )}

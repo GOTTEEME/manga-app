@@ -2,13 +2,11 @@ import { useEffect, useState, useMemo } from "react";
 import { getMangaByCategory } from "../api/mangadex";
 import MangaCard from "../components/MangaCard";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useLanguage } from "../contexts/LanguageContext";
 import FeaturedCarousel from "../components/FeaturedCarousel";
 import { useCategory } from "../contexts/CategoryContext";
 import { getCategoryLabel } from "../utils/category";
 
 export default function Home() {
-  const { isThai } = useLanguage();
   const { category } = useCategory();
   const [topManga, setTopManga] = useState([]);
   const [latestManga, setLatestManga] = useState([]);
@@ -20,17 +18,17 @@ export default function Home() {
   const PAGE_SIZE = 30;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const categoryLabel = useMemo(() => getCategoryLabel(category, isThai), [category, isThai]);
+  const categoryLabel = useMemo(() => getCategoryLabel(category), [category]);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchFeatured() {
       try {
         setLoadingFeatured(true);
-        const data = await getMangaByCategory(category, { limit: 10, order: { followedCount: "desc" } });
+        const data = await getMangaByCategory(category, { limit: 5, order: { followedCount: "desc" } });
         if (!cancelled) setFeaturedManga(data);
       } catch (e) {
-        if (!cancelled) setError(isThai ? "ไม่สามารถโหลดสไลด์แนะนำได้" : "Failed to load featured slideshow");
+        if (!cancelled) setError("ไม่สามารถโหลดสไลด์แนะนำได้");
       } finally {
         if (!cancelled) setLoadingFeatured(false);
       }
@@ -42,7 +40,7 @@ export default function Home() {
         const data = await getMangaByCategory(category, { limit: 5, order: { followedCount: "desc" } });
         if (!cancelled) setTopManga(data);
       } catch (e) {
-        if (!cancelled) setError(isThai ? "ไม่สามารถโหลดการ์ตูนยอดนิยมได้" : "Failed to load top manga");
+        if (!cancelled) setError("ไม่สามารถโหลดการ์ตูนยอดนิยมได้");
       } finally {
         if (!cancelled) setLoadingTop(false);
       }
@@ -51,7 +49,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [isThai, category]);
+  }, [category]);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +63,7 @@ export default function Home() {
         });
         if (!cancelled) setLatestManga(data);
       } catch (e) {
-        if (!cancelled) setError(isThai ? "ไม่สามารถโหลดอัปเดตล่าสุดได้" : "Failed to load latest updates");
+        if (!cancelled) setError("ไม่สามารถโหลดอัปเดตล่าสุดได้");
       } finally {
         if (!cancelled) setLoadingLatest(false);
       }
@@ -74,7 +72,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [isThai, currentPage, category]);
+  }, [currentPage, category]);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -155,7 +153,7 @@ export default function Home() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              {isThai ? `อัปเดตล่าสุด (${categoryLabel})` : `Latest Updates (${categoryLabel})`}
+              อัปเดตล่าสุด ({categoryLabel})
             </h2>
           </div>
           {loadingLatest ? (
@@ -181,7 +179,7 @@ export default function Home() {
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {isThai ? "ก่อนหน้า" : "Previous"}
+              ก่อนหน้า
             </button>
 
             {getPageNumbers().map((p) => (
@@ -208,7 +206,7 @@ export default function Home() {
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {isThai ? "ถัดไป" : "Next"}
+              ถัดไป
             </button>
           </div>
         </section>

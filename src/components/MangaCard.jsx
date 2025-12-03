@@ -5,7 +5,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 export default function MangaCard({ manga }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const { getTitle, getDescription, isThai } = useLanguage();
+  const { getTitle, getDescription } = useLanguage();
 
   // Handle different data formats
   const id = manga.id || manga._id;
@@ -93,7 +93,7 @@ export default function MangaCard({ manga }) {
                 {description}
               </p>
               <button className="w-full py-2.5 bg-primary text-white rounded-md font-medium hover:bg-primary-dark transition-all duration-200 transform hover:scale-105">
-                {isThai ? "อ่านเลย" : "Read Now"}
+                อ่านเลย
               </button>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function MangaCard({ manga }) {
           {/* Title */}
           <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] text-sm sm:text-base">
             {title}
-            {isThai && manga.thaiTitle && title !== originalTitle && (
+            {manga.thaiTitle && title !== originalTitle && (
               <div className="text-xs text-gray-500 mt-1 truncate">
                 {originalTitle}
               </div>

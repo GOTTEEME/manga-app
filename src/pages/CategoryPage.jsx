@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
 import { useCategory } from "../contexts/CategoryContext";
 import { CATEGORY_LIST, getCategoryLabel } from "../utils/category";
 import { getMangaByCategory } from "../api/mangadex";
 import LoadingSpinner from "../components/LoadingSpinner";
 import MangaGrid from "../components/MangaGrid";
+import FeaturedCarousel from "../components/FeaturedCarousel";
 
 export default function CategoryPage() {
   const { category: urlCategory } = useParams();
   const navigate = useNavigate();
-  const { isThai } = useLanguage();
   const { category, setCategory } = useCategory();
 
   const normalized = (urlCategory || "all").toLowerCase();
@@ -21,6 +20,10 @@ export default function CategoryPage() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const LIMIT = 30;
+
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [featuredError, setFeaturedError] = useState("");
 
   // Validate category from URL
   useEffect(() => {
@@ -52,10 +55,25 @@ export default function CategoryPage() {
       }
     }
     fetchData();
+    async function fetchFeatured() {
+      try {
+        setLoadingFeatured(true);
+        setFeaturedError("");
+        const data = await getMangaByCategory(normalized, { limit: 5, order: { followedCount: "desc" } });
+        if (!cancelled) {
+          setFeaturedItems(data);
+        }
+      } catch (e) {
+        if (!cancelled) setFeaturedError("ไม่สามารถโหลดสไลด์แนะนำได้");
+      } finally {
+        if (!cancelled) setLoadingFeatured(false);
+      }
+    }
+    fetchFeatured();
     return () => {
       cancelled = true;
     };
-  }, [normalized, isThai]);
+  }, [normalized]);
 
   const loadMore = async () => {
     if (loading || !hasMore) return;
@@ -66,13 +84,13 @@ export default function CategoryPage() {
       setOffset(prev => prev + data.length);
       setHasMore(data.length === LIMIT);
     } catch (e) {
-      setError(isThai ? "โหลดข้อมูลเพิ่มเติมล้มเหลว" : "Failed to load more");
+      setError("โหลดข้อมูลเพิ่มเติมล้มเหลว");
     } finally {
       setLoading(false);
     }
   };
 
-  const title = useMemo(() => getCategoryLabel(normalized, isThai), [normalized, isThai]);
+  const title = useMemo(() => getCategoryLabel(normalized), [normalized]);
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -80,6 +98,16 @@ export default function CategoryPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
         </div>
+
+        <section className="mb-10">
+          {loadingFeatured ? (
+            <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <FeaturedCarousel items={featuredItems} />
+          )}
+        </section>
 
         {error && (
           <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-red-700">{error}</div>
@@ -102,7 +130,7 @@ export default function CategoryPage() {
                 loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-dark"
               }`}
             >
-              {loading ? (isThai ? "กำลังโหลด..." : "Loading...") : (isThai ? "โหลดเพิ่มเติม" : "Load More")}
+              {loading ? "กำลังโหลด..." : "โหลดเพิ่มเติม"}
             </button>
           )}
         </div>

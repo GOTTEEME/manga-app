@@ -25,17 +25,17 @@ export function getOriginalLanguageForCategory(category) {
   }
 }
 
-export function getCategoryLabel(category, isThai) {
+export function getCategoryLabel(category) {
   const key = (category || CATEGORY_ALL).toLowerCase();
   switch (key) {
     case CATEGORY_MANGA:
-      return isThai ? "มังงะ" : "Manga";
+      return "มังงะ";
     case CATEGORY_MANHWA:
-      return isThai ? "มังฮวา" : "Manhwa";
+      return "มังฮวา";
     case CATEGORY_MANHUA:
-      return isThai ? "มังฮัว" : "Manhua";
+      return "มังฮัว";
     case CATEGORY_ALL:
     default:
-      return isThai ? "ทั้งหมด" : "All";
+      return "ทั้งหมด";
   }
 }

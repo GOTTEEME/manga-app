@@ -127,6 +127,25 @@ export async function getMangaByCategory(category, options = {}) {
   });
 }
 
+// Get adult/18+ manga (doujin) using contentRating filters
+export async function getAdultManga(options = {}) {
+  const {
+    limit = 30,
+    offset = 0,
+    order = { updatedAt: "desc" },
+    originalLanguage,
+  } = options;
+
+  return getMangaList({
+    limit,
+    offset,
+    order,
+    originalLanguage,
+    includes: ["cover_art", "author", "artist"],
+    contentRating: ["erotica", "pornographic"],
+  });
+}
+
 // Get manga by ID with detailed information
 export async function getMangaById(id) {
   try {
@@ -214,29 +233,28 @@ export async function getChaptersByMangaId(id, options = {}) {
       const PAGE_LIMIT = 100; // MangaDex API max per page for chapters
       
       async function fetchPage(offset) {
+        const baseParams = {
+          manga: id,
+          limit: PAGE_LIMIT,
+          offset,
+          order,
+          groups,
+        };
+
+        const params =
+          translatedLanguage && translatedLanguage.length
+            ? { ...baseParams, translatedLanguage }
+            : baseParams;
+
         try {
           return await axios.get(`${API_BASE}/chapter`, {
-            params: {
-              manga: id,
-              limit: PAGE_LIMIT,
-              offset,
-              order,
-              translatedLanguage,
-              groups,
-            },
+            params,
             timeout: 10000,
             signal,
           });
         } catch (err) {
           return await axios.get(`${API_BASE}/chapter`, {
-            params: {
-              manga: id,
-              limit: PAGE_LIMIT,
-              offset,
-              order,
-              translatedLanguage,
-              groups,
-            },
+            params,
             timeout: 15000,
             signal,
           });
@@ -273,15 +291,22 @@ export async function getChaptersByMangaId(id, options = {}) {
     } else {
       // Original behavior for non-fetchAll requests
       async function fetchOnce() {
+        const baseParams = { manga: id, limit, offset, order, groups };
+
+        const params =
+          translatedLanguage && translatedLanguage.length
+            ? { ...baseParams, translatedLanguage }
+            : baseParams;
+
         try {
           return await axios.get(`${API_BASE}/chapter`, {
-            params: { manga: id, limit, offset, order, translatedLanguage, groups },
+            params,
             timeout: 10000,
             signal,
           });
         } catch (err) {
           return await axios.get(`${API_BASE}/chapter`, {
-            params: { manga: id, limit, offset, order, translatedLanguage, groups },
+            params,
             timeout: 15000,
             signal,
           });

@@ -16,7 +16,7 @@ export default function MangaDetail() {
   const [relatedManga, setRelatedManga] = useState([]);
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedError, setRelatedError] = useState(null);
-  const { getTitle, getDescription, isThai } = useLanguage();
+  const { getTitle, getDescription } = useLanguage();
   const [descExpanded, setDescExpanded] = useState(false);
   const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ export default function MangaDetail() {
   const handleStartReading = () => {
     if (chaptersLoading || !chapters || chapters.length === 0) return;
 
-    const preferred = isThai ? ["th", "en"] : ["en"];
+    const preferred = ["th", "en"];
     let pool = [];
     for (const lang of preferred) {
       const subset = chapters.filter((c) => (c.translatedLanguage || "").toLowerCase() === lang);
@@ -98,8 +98,13 @@ export default function MangaDetail() {
 
       try {
         setChaptersLoading(true);
-        // Fetch chapters in both English and Thai if Thai is preferred
-        const languages = isThai ? ["en", "th"] : ["en"];
+        // For adult/18+ titles, fetch chapters in all languages.
+        // For others, prefer Thai/English.
+        const isAdult = ["erotica", "pornographic"].includes(
+          (manga.contentRating || "").toLowerCase()
+        );
+
+        const languages = isAdult ? [] : ["th", "en"];
         const chaptersData = await getChaptersByMangaId(id, {
           limit: 100,
           translatedLanguage: languages,
@@ -194,8 +199,9 @@ export default function MangaDetail() {
     fetchRelated();
   }, [manga]);
 
-  // Chapter language filter (per manga detail page) - default to English
-  const [chapterLanguage, setChapterLanguage] = useState("en");
+  // Chapter language filter (per manga detail page).
+  // Empty string means "all languages".
+  const [chapterLanguage, setChapterLanguage] = useState("");
 
   const filteredChapters = chapters.filter((chapter) => {
     const lang = (chapter.translatedLanguage || "").toLowerCase();
@@ -308,7 +314,7 @@ export default function MangaDetail() {
 
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center md:text-left leading-snug break-words">
                 {getTitle(manga)}
-                {isThai && manga.thaiTitle && getTitle(manga) !== manga.title && (
+                {manga.thaiTitle && getTitle(manga) !== manga.title && (
                   <div className="text-xl text-white/80 mt-2">
                     {manga.title}
                   </div>
@@ -401,7 +407,7 @@ export default function MangaDetail() {
                     className="ml-2 underline text-white hover:text-white/80"
                     onClick={() => setDescExpanded((v) => !v)}
                   >
-                    {descExpanded ? (isThai ? "แสดงน้อยลง" : "Show less") : (isThai ? "อ่านเพิ่มเติม" : "Read more")}
+                    {descExpanded ? "แสดงน้อยลง" : "อ่านเพิ่มเติม"}
                   </button>
                 )}
               </div>
@@ -435,10 +441,10 @@ export default function MangaDetail() {
                   disabled={chaptersLoading || chapters.length === 0}
                   className="btn bg-white text-primary hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isThai ? "เริ่มอ่าน" : "Start Reading"}
+                  เริ่มอ่าน
                 </button>
                 <button className="btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-3 px-6 rounded-lg transition-all duration-200">
-                  {isThai ? "เพิ่มในคลัง" : "Add to Library"}
+                  เพิ่มในคลัง
                 </button>
               </div>
             </div>
@@ -458,7 +464,7 @@ export default function MangaDetail() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
             >
-              {isThai ? `ตอนทั้งหมด (${chapters.length})` : `Chapters (${chapters.length})`}
+              {`ตอนทั้งหมด (${chapters.length})`}
             </button>
             <button
               onClick={() => setActiveTab("related")}
@@ -467,7 +473,7 @@ export default function MangaDetail() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
             >
-              {isThai ? "การ์ตูนที่เกี่ยวข้อง" : "Related Comics"}
+              การ์ตูนที่เกี่ยวข้อง
             </button>
           </nav>
         </div>
@@ -477,15 +483,18 @@ export default function MangaDetail() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">
-                {isThai ? "ตอนทั้งหมด" : "All Chapters"}
+                ตอนทั้งหมด
                 <span className="ml-2 text-lg text-gray-500">({filteredChapters.length})</span>
               </h2>
               <div className="flex items-center space-x-4">
                 {chapters.length > 0 && (
                   <span className="text-sm text-gray-500">
-                    {isThai
-                      ? `แสดง ${filteredChapters.length} ตอน (${chapterLanguage === "th" ? "ภาษาไทย" : "ภาษาอังกฤษ"})`
-                      : `Showing ${filteredChapters.length} chapters (${chapterLanguage === "th" ? "Thai" : "English"})`}
+                    {(() => {
+                      const label = !chapterLanguage
+                        ? "ทุกภาษา"
+                        : chapterLanguage.toUpperCase();
+                      return `แสดง ${filteredChapters.length} ตอน (${label})`;
+                    })()}
                   </span>
                 )}
                 <div className="inline-flex items-center rounded-full bg-gray-100 p-1 shadow-sm border border-gray-200">
@@ -509,13 +518,24 @@ export default function MangaDetail() {
                   >
                     TH
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setChapterLanguage("")}
+                    className={`ml-1 px-3 py-1 text-xs font-semibold rounded-full transition-colors duration-200 ${
+                      !chapterLanguage
+                        ? "bg-primary text-white shadow"
+                        : "bg-transparent text-gray-600 hover:bg-white/70"
+                    }`}
+                  >
+                    ทั้งหมด
+                  </button>
                 </div>
               </div>
             </div>
 
             {chaptersLoading ? (
               <div className="flex justify-center py-8">
-                <LoadingSpinner size="lg" text={isThai ? "กำลังโหลดตอน..." : "Loading chapters..."} />
+                <LoadingSpinner size="lg" text="กำลังโหลดตอน..." />
               </div>
             ) : filteredChapters.length > 0 ? (
               <div
@@ -541,12 +561,12 @@ export default function MangaDetail() {
                             )}
                           </h3>
                           <p className="text-sm text-gray-500 mt-1">
-                            {chapter.volume && `${isThai ? "เล่ม" : "Volume"} ${chapter.volume}, `}{isThai ? "ตอนที่" : "Chapter"} {chapter.chapter}
-                            {chapter.pages && ` • ${chapter.pages} ${isThai ? "หน้า" : "pages"}`}
+                            {chapter.volume && `เล่ม ${chapter.volume}, `}ตอนที่ {chapter.chapter}
+                            {chapter.pages && ` • ${chapter.pages} หน้า`}
                             {chapter.translatedLanguage && ` • ${chapter.translatedLanguage.toUpperCase()}`}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
-                            {isThai ? "วางจำหน่ายเมื่อ" : "Released on"} {formatDate(chapter.publishAt)}
+                            วางจำหน่ายเมื่อ {formatDate(chapter.publishAt)}
                           </p>
                         </div>
                         <svg
@@ -584,7 +604,7 @@ export default function MangaDetail() {
                     d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                   ></path>
                 </svg>
-                <p className="text-gray-500">{isThai ? "ไม่มีตอนที่ให้อ่าน" : "No chapters available"}</p>
+                <p className="text-gray-500">ไม่มีตอนที่ให้อ่าน</p>
               </div>
             )}
           </div>
@@ -593,7 +613,7 @@ export default function MangaDetail() {
         {/* Reviews section: shown only when viewing chapters */}
         {activeTab === "chapters" && (
           <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">{isThai ? "รีวิว" : "Reviews"}</h2>
+            <h2 className="text-2xl font-bold mb-6">รีวิว</h2>
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <svg
                 className="w-16 h-16 mx-auto text-gray-400 mb-4"
@@ -610,10 +630,10 @@ export default function MangaDetail() {
                 ></path>
               </svg>
               <p className="text-gray-500 mb-4">
-                {isThai ? "ยังไม่มีรีวิว มาเป็นคนแรกที่รีวิวการ์ตูนเรื่องนี้!" : "No reviews yet. Be the first to review this comic!"}
+                ยังไม่มีรีวิว มาเป็นคนแรกที่รีวิวการ์ตูนเรื่องนี้!
               </p>
               <button className="btn btn-primary">
-                {isThai ? "เขียนรีวิว" : "Write a Review"}
+                เขียนรีวิว
               </button>
             </div>
           </div>
@@ -621,11 +641,11 @@ export default function MangaDetail() {
 
         {activeTab === "related" && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">{isThai ? "การ์ตูนที่เกี่ยวข้อง" : "Related Comics"}</h2>
+            <h2 className="text-2xl font-bold mb-6">การ์ตูนที่เกี่ยวข้อง</h2>
 
             {relatedLoading ? (
               <div className="bg-white rounded-lg shadow-sm p-8 flex justify-center">
-                <LoadingSpinner size="md" text={isThai ? "กำลังโหลดการ์ตูนที่เกี่ยวข้อง..." : "Loading related comics..."} />
+                <LoadingSpinner size="md" text="กำลังโหลดการ์ตูนที่เกี่ยวข้อง..." />
               </div>
             ) : relatedError ? (
               <div className="bg-white rounded-lg shadow-sm p-8 text-center text-red-500 text-sm">
@@ -656,9 +676,7 @@ export default function MangaDetail() {
                   ></path>
                 </svg>
                 <p className="text-gray-500">
-                  {isThai
-                    ? "ยังไม่พบการ์ตูนที่เกี่ยวข้องสำหรับเรื่องนี้"
-                    : "No related comics found for this title yet."}
+                  ยังไม่พบการ์ตูนที่เกี่ยวข้องสำหรับเรื่องนี้
                 </p>
               </div>
             )}

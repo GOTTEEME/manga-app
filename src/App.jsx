@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import SearchModal from "./components/SearchModal";
 import Home from "./pages/Home";
@@ -11,17 +11,21 @@ import CompletedPage from "./pages/CompletedPage";
 import NotFound from "./pages/NotFound";
 import { CategoryProvider } from "./contexts/CategoryContext";
 
-function AppLayout({ children, openSearch, closeSearch, isSearchOpen }) {
+function AppLayout({ children, openSearch, closeSearch, isSearchOpen, isDarkMode, toggleDarkMode }) {
   const location = useLocation();
   const isChapterRoute = location.pathname.startsWith("/chapter/");
 
   return (
     <CategoryProvider>
-      <div className={isChapterRoute ? "min-h-screen bg-black text-white" : "min-h-screen bg-gray-50 text-gray-900"}>
+      <div className={
+        isChapterRoute
+          ? "min-h-screen bg-black text-white"
+          : `min-h-screen ${isDarkMode ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"}`
+      }>
         {!isChapterRoute && (
           <>
             {/* Navbar */}
-            <Navbar openSearch={openSearch} />
+            <Navbar openSearch={openSearch} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
             {/* Search Modal */}
             <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
@@ -33,7 +37,7 @@ function AppLayout({ children, openSearch, closeSearch, isSearchOpen }) {
 
         {!isChapterRoute && (
           /* Footer */
-          <footer className="bg-gray-800 text-white py-8 mt-12">
+          <footer className={isDarkMode ? "bg-gray-900 text-gray-200 py-8 mt-12" : "bg-gray-800 text-white py-8 mt-12"}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
@@ -84,13 +88,48 @@ function AppLayout({ children, openSearch, closeSearch, isSearchOpen }) {
 
 export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const stored = window.localStorage.getItem("theme");
+      if (stored === "dark") return true;
+      if (stored === "light") return false;
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  });
 
   const openSearch = () => setIsSearchOpen(true);
   const closeSearch = () => setIsSearchOpen(false);
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const root = document.documentElement;
+      if (isDarkMode) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    }
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+      } catch (_) {}
+    }
+  }, [isDarkMode]);
 
   return (
     <Router>
-      <AppLayout openSearch={openSearch} closeSearch={closeSearch} isSearchOpen={isSearchOpen}>
+      <AppLayout
+        openSearch={openSearch}
+        closeSearch={closeSearch}
+        isSearchOpen={isSearchOpen}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/category/:category" element={<CategoryPage />} />

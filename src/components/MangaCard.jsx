@@ -68,7 +68,7 @@ export default function MangaCard({ manga }) {
   return (
     <Link to={`/manga/${id}`} className="block h-full">
       <div
-        className="card h-full flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl relative group overflow-hidden"
+        className="card h-full flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl relative group overflow-hidden dark:bg-gray-900"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -120,22 +120,22 @@ export default function MangaCard({ manga }) {
         </div>
 
         {/* Card Content - Fixed height section */}
-        <div className="p-4 bg-white flex-1 flex flex-col">
+        <div className="p-4 bg-white flex-1 flex flex-col dark:bg-gray-800">
           {/* Title */}
-          <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] text-sm sm:text-base">
+          <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] text-sm sm:text-base dark:text-gray-100">
             {title}
             {manga.thaiTitle && title !== originalTitle && (
-              <div className="text-xs text-gray-500 mt-1 truncate">
+              <div className="text-xs text-gray-500 mt-1 truncate dark:text-gray-400">
                 {originalTitle}
               </div>
             )}
           </h3>
 
           {/* Author */}
-          <p className="text-sm text-gray-600 mb-3 truncate">by {author}</p>
+          <p className="text-sm text-gray-600 mb-3 truncate dark:text-gray-300">by {author}</p>
 
           {/* Additional Info */}
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+          <div className="flex items-center justify-between text-xs text-gray-500 mb-3 dark:text-gray-300">
             <span className="flex items-center">
               <svg
                 className="w-4 h-4 mr-1"
@@ -184,13 +184,13 @@ export default function MangaCard({ manga }) {
               {manga.tags.slice(0, 2).map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors"
+                  className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 >
                   {tag}
                 </span>
               ))}
               {manga.tags.length > 2 && (
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full dark:bg-gray-700 dark:text-gray-200">
                   +{manga.tags.length - 2}
                 </span>
               )}

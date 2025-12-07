@@ -8,12 +8,12 @@ const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
     : "inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors";
 
   const activeClasses = isMobile
-    ? "text-primary border-l-4 border-primary bg-primary/5"
+    ? "text-primary border-l-4 border-primary bg-primary/5 dark:text-primary dark:bg-primary/20"
     : "text-primary border-b-2 border-primary";
 
   const inactiveClasses = isMobile
-    ? "text-gray-700 hover:text-primary hover:bg-gray-50"
-    : "text-gray-700 hover:text-primary";
+    ? "text-gray-700 hover:text-primary hover:bg-gray-50 dark:text-gray-200 dark:hover:text-primary dark:hover:bg-gray-800"
+    : "text-gray-700 hover:text-primary dark:text-gray-200 dark:hover:text-primary";
 
   return (
     <Link
@@ -41,9 +41,9 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
           onClick={onToggle}
           className={`w-full text-left pl-3 pr-4 py-2 text-base font-medium transition-colors flex items-center justify-between ${
             activePath.startsWith('/category/')
-              ? "text-primary border-l-4 border-primary bg-primary/5"
-              : "text-gray-700 hover:text-primary hover:bg-gray-50"
-          } ${isOpen ? 'bg-gray-50' : ''}`}
+              ? "text-primary border-l-4 border-primary bg-primary/5 dark:text-primary dark:bg-primary/20"
+              : "text-gray-700 hover:text-primary hover:bg-gray-50 dark:text-gray-200 dark:hover:text-primary dark:hover:bg-gray-800"
+          } ${isOpen ? 'bg-gray-50 dark:bg-gray-800' : ''}`}
           aria-expanded={isOpen}
         >
           หมวดหมู่
@@ -72,16 +72,18 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
     <div className="relative">
       <button
         onClick={onToggle}
-        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-          isOpen ? 'bg-gray-100' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-        } transition-colors`}
+        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+          activePath.startsWith('/category/')
+            ? 'text-primary bg-primary/5 dark:text-primary dark:bg-primary/20'
+            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:hover:text-gray-100 dark:hover:bg-gray-800'
+        } ${isOpen ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
         aria-expanded={isOpen}
       >
         <span>หมวดหมู่</span>
         <ChevronIcon isOpen={isOpen} />
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 dark:bg-gray-900">
           <div className="py-1">
             {categories.map(({ id, label }) => {
               const isActiveItem = activePath === `/category/${id}`;
@@ -93,8 +95,10 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
                     onNavigate();
                     setTimeout(() => { window.location.href = `/category/${id}`; }, 0);
                   }}
-                  className={`flex items-center w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors ${
-                    isActiveItem ? 'bg-primary text-white hover:bg-primary-dark' : 'text-gray-700'
+                  className={`flex items-center w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors dark:hover:bg-gray-800 ${
+                    isActiveItem
+                      ? 'bg-primary text-white hover:bg-primary-dark'
+                      : 'text-gray-700 dark:text-gray-200'
                   }`}
                 >
                   <span>{label}</span>
@@ -169,11 +173,15 @@ const SearchBar = ({ onClick, isMobile = false }) => (
 );
 
 // Mobile Menu Button
-const MobileMenuButton = ({ isOpen, onClick }) => (
+const MobileMenuButton = ({ isOpen, onClick, isDarkMode }) => (
   <div className="md:hidden flex items-center">
     <button
       onClick={onClick}
-      className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+      className={`inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${
+        isDarkMode
+          ? "text-gray-200 hover:text-primary hover:bg-gray-800"
+          : "text-gray-700 hover:text-primary hover:bg-gray-100"
+      }`}
       aria-expanded={isOpen}
     >
       <span className="sr-only">Open main menu</span>
@@ -195,7 +203,36 @@ const MobileMenuButton = ({ isOpen, onClick }) => (
   </div>
 );
 
-export default function Navbar({ openSearch }) {
+const ThemeToggleButton = ({ isDarkMode, toggleDarkMode, isMobile = false }) => {
+  const wrapperClasses = isMobile
+    ? "w-full flex items-center justify-start px-3 py-2"
+    : "inline-flex items-center";
+
+  return (
+    <button
+      type="button"
+      onClick={toggleDarkMode}
+      className={`${wrapperClasses} focus:outline-none`}
+      aria-label="Toggle dark mode"
+    >
+      <div
+        className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${
+          isDarkMode ? "bg-gray-700" : "bg-gray-300"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 left-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+            isDarkMode ? "translate-x-5" : "translate-x-0"
+          }`}
+        >
+          <span className="text-xs">{isDarkMode ? "🌙" : "☀️"}</span>
+        </span>
+      </div>
+    </button>
+  );
+};
+
+export default function Navbar({ openSearch, isDarkMode, toggleDarkMode }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -237,12 +274,12 @@ export default function Navbar({ openSearch }) {
   ];
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header className={isDarkMode ? "bg-gray-900 shadow-md sticky top-0 z-50" : "bg-white shadow-md sticky top-0 z-50"}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-primary">Toonsoilnex</span>
+            <span className={isDarkMode ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-primary"}>Toonsoilnex</span>
           </Link>
 
           {/* Desktop Search */}
@@ -269,16 +306,21 @@ export default function Navbar({ openSearch }) {
                 activePath={location.pathname}
               />
             </div>
+
+            <ThemeToggleButton
+              isDarkMode={isDarkMode}
+              toggleDarkMode={toggleDarkMode}
+            />
           </nav>
 
           {/* Mobile Menu Button */}
-          <MobileMenuButton isOpen={isMenuOpen} onClick={toggleMobileMenu} />
+          <MobileMenuButton isOpen={isMenuOpen} onClick={toggleMobileMenu} isDarkMode={isDarkMode} />
         </div>
       </div>
 
       {/* Mobile Menu Panel */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className={isDarkMode ? "md:hidden bg-gray-900 border-t border-gray-700" : "md:hidden bg-white border-t border-gray-200"}>
           <div className="px-2 pt-2 pb-3 space-y-1">
             {/* Mobile Search */}
             <SearchBar onClick={handleSearchClick} isMobile />
@@ -296,7 +338,11 @@ export default function Navbar({ openSearch }) {
               </NavLink>
             ))}
 
-            
+            <ThemeToggleButton
+              isDarkMode={isDarkMode}
+              toggleDarkMode={toggleDarkMode}
+              isMobile
+            />
 
             {/* Mobile Categories Dropdown */}
             <CategoriesDropdown

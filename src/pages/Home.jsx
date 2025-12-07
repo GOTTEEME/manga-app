@@ -112,7 +112,7 @@ export default function Home() {
   }, [loadingLatest]);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Slideshow */}
         <section className="mb-10">
@@ -133,7 +133,7 @@ export default function Home() {
 
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               มังงะใหม่ยอดฮิต
             </h2>
           </div>
@@ -152,7 +152,7 @@ export default function Home() {
 
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               อัปเดตล่าสุด ({categoryLabel})
             </h2>
           </div>
@@ -175,8 +175,8 @@ export default function Home() {
               disabled={currentPage === 1 || loadingLatest}
               className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
                 currentPage === 1 || loadingLatest
-                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
               }`}
             >
               ก่อนหน้า
@@ -190,7 +190,7 @@ export default function Home() {
                 className={`w-10 h-10 rounded-md border text-sm font-semibold transition-colors ${
                   p === currentPage
                     ? "bg-primary text-white border-primary"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
                 }`}
               >
                 {p}
@@ -202,8 +202,8 @@ export default function Home() {
               disabled={loadingLatest}
               className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
                 loadingLatest
-                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
               }`}
             >
               ถัดไป

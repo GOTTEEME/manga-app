@@ -93,10 +93,10 @@ export default function CategoryPage() {
   const title = useMemo(() => getCategoryLabel(normalized), [normalized]);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
         </div>
 
         <section className="mb-10">
@@ -127,7 +127,9 @@ export default function CategoryPage() {
               onClick={loadMore}
               disabled={loading}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-dark"
+                loading
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500"
+                  : "bg-primary text-white hover:bg-primary-dark"
               }`}
             >
               {loading ? "กำลังโหลด..." : "โหลดเพิ่มเติม"}

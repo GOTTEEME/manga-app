@@ -107,17 +107,17 @@ export default function DoujinPage() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">
             โดจิน / การ์ตูนผู้ใหญ่ 18+
           </h1>
           <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
             เนื้อหาหน้านี้มีเฉพาะผู้ชมที่มีอายุ 18 ปีขึ้นไปเท่านั้น กรุณาใช้งานด้วยความรับผิดชอบ
           </div>
-          <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-full bg-gray-100 px-2 py-1 text-xs sm:text-sm">
-            <span className="text-gray-600 mr-2">
+          <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-full bg-gray-100 px-2 py-1 text-xs sm:text-sm dark:bg-gray-800">
+            <span className="text-gray-600 mr-2 dark:text-gray-200">
               กรองตามแนว:
             </span>
             {["all", "male-male", "female-female", "straight", "other"].map((key) => {
@@ -147,7 +147,7 @@ export default function DoujinPage() {
                   className={`px-3 py-1 rounded-full border text-xs font-semibold transition-colors duration-200 ${
                     isActive
                       ? "bg-primary text-white border-primary shadow"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800"
                   }`}
                 >
                   {label}
@@ -176,8 +176,8 @@ export default function DoujinPage() {
             disabled={currentPage === 1 || loading}
             className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
               currentPage === 1 || loading
-                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
             }`}
           >
             ก่อนหน้า
@@ -191,7 +191,7 @@ export default function DoujinPage() {
               className={`w-10 h-10 rounded-md border text-sm font-semibold transition-colors ${
                 p === currentPage
                   ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
               }`}
             >
               {p}
@@ -203,8 +203,8 @@ export default function DoujinPage() {
             disabled={loading}
             className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
               loading
-                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
             }`}
           >
             ถัดไป

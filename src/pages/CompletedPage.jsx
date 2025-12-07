@@ -79,10 +79,10 @@ export default function CompletedPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">
             {isThai ? "การ์ตูนจบแล้ว" : "Completed Manga"}
           </h1>
         </div>
@@ -106,8 +106,8 @@ export default function CompletedPage() {
             disabled={currentPage === 1 || loading}
             className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
               currentPage === 1 || loading
-                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
             }`}
           >
             {isThai ? "ก่อนหน้า" : "Previous"}
@@ -121,7 +121,7 @@ export default function CompletedPage() {
               className={`w-10 h-10 rounded-md border text-sm font-semibold transition-colors ${
                 p === currentPage
                   ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
               }`}
             >
               {p}
@@ -133,8 +133,8 @@ export default function CompletedPage() {
             disabled={loading}
             className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
               loading
-                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
             }`}
           >
             {isThai ? "ถัดไป" : "Next"}

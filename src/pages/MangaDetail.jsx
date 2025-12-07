@@ -210,7 +210,7 @@ export default function MangaDetail() {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen py-12">
+      <div className="min-h-screen py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
             <div className="flex flex-col md:flex-row gap-8 mb-8">
@@ -241,7 +241,7 @@ export default function MangaDetail() {
 
   if (error) {
     return (
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">
             <svg
@@ -271,7 +271,7 @@ export default function MangaDetail() {
 
   if (!manga) {
     return (
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Manga not found</h1>
           <p className="text-gray-600 mb-6">The manga you're looking for doesn't exist or has been removed.</p>
@@ -284,7 +284,7 @@ export default function MangaDetail() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary to-secondary text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -482,7 +482,7 @@ export default function MangaDetail() {
         {activeTab === "chapters" && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold dark:text-gray-100">
                 ตอนทั้งหมด
                 <span className="ml-2 text-lg text-gray-500">({filteredChapters.length})</span>
               </h2>
@@ -503,7 +503,7 @@ export default function MangaDetail() {
                     onClick={() => setChapterLanguage("en")}
                     className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors duration-200 ${chapterLanguage === "en"
                         ? "bg-primary text-white shadow"
-                        : "bg-transparent text-gray-600 hover:bg-white/70"
+                        : "bg-transparent text-gray-600 hover:bg-white/70 dark:text-gray-300 dark:hover:bg-gray-700/70"
                       }`}
                   >
                     EN
@@ -539,7 +539,7 @@ export default function MangaDetail() {
               </div>
             ) : filteredChapters.length > 0 ? (
               <div
-                className={`bg-white rounded-lg shadow-sm overflow-hidden ${chapters.length > 5 ? "max-h-[520px] overflow-y-auto" : ""
+                className={`bg-white rounded-lg shadow-sm overflow-hidden dark:bg-gray-900 dark:text-gray-100 ${chapters.length > 5 ? "max-h-[520px] overflow-y-auto" : ""
                   }`}
               >
                 <div className="divide-y divide-gray-200">
@@ -548,24 +548,24 @@ export default function MangaDetail() {
                       key={chapter.id}
                       to={`/chapter/${chapter.id}`}
                       state={{ mangaTitle: getTitle(manga), mangaId: id }}
-                      className="block hover:bg-gray-50 transition-colors"
+                      className="block hover:bg-gray-50 transition-colors dark:hover:bg-gray-800"
                     >
                       <div className="px-6 py-4 flex items-center justify-between">
                         <div>
-                          <h3 className="text-lg font-medium text-gray-900">
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                             {chapter.title}
                             {chapter.translatedLanguage && (
-                              <span className="ml-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                              <span className="ml-2 text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded dark:bg-gray-700 dark:text-gray-200">
                                 {chapter.translatedLanguage.toUpperCase()}
                               </span>
                             )}
                           </h3>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-gray-500 mt-1 dark:text-gray-300">
                             {chapter.volume && `เล่ม ${chapter.volume}, `}ตอนที่ {chapter.chapter}
                             {chapter.pages && ` • ${chapter.pages} หน้า`}
                             {chapter.translatedLanguage && ` • ${chapter.translatedLanguage.toUpperCase()}`}
                           </p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-gray-400 mt-1 dark:text-gray-400">
                             วางจำหน่ายเมื่อ {formatDate(chapter.publishAt)}
                           </p>
                         </div>
@@ -589,7 +589,7 @@ export default function MangaDetail() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center dark:bg-gray-900 dark:text-gray-100">
                 <svg
                   className="w-16 h-16 mx-auto text-gray-400 mb-4"
                   fill="none"
@@ -641,18 +641,18 @@ export default function MangaDetail() {
 
         {activeTab === "related" && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">การ์ตูนที่เกี่ยวข้อง</h2>
+            <h2 className="text-2xl font-bold mb-6 dark:text-gray-100">การ์ตูนที่เกี่ยวข้อง</h2>
 
             {relatedLoading ? (
-              <div className="bg-white rounded-lg shadow-sm p-8 flex justify-center">
+              <div className="bg-white rounded-lg shadow-sm p-8 flex justify-center dark:bg-gray-900 dark:text-gray-100">
                 <LoadingSpinner size="md" text="กำลังโหลดการ์ตูนที่เกี่ยวข้อง..." />
               </div>
             ) : relatedError ? (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center text-red-500 text-sm">
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center text-red-500 text-sm dark:bg-gray-900 dark:text-red-400">
                 {relatedError}
               </div>
             ) : relatedManga.length > 0 ? (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg shadow-sm p-6 dark:bg-gray-900">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                   {relatedManga.map((item) => (
                     <MangaCard key={item.id} manga={item} />
@@ -660,7 +660,7 @@ export default function MangaDetail() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center dark:bg-gray-900 dark:text-gray-100">
                 <svg
                   className="w-16 h-16 mx-auto text-gray-400 mb-4"
                   fill="none"
@@ -675,7 +675,7 @@ export default function MangaDetail() {
                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                   ></path>
                 </svg>
-                <p className="text-gray-500">
+                <p className="text-gray-500 dark:text-gray-300">
                   ยังไม่พบการ์ตูนที่เกี่ยวข้องสำหรับเรื่องนี้
                 </p>
               </div>

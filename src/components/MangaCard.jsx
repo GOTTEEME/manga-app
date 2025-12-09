@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 
 export default function MangaCard({ manga }) {
-  const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { getTitle, getDescription } = useLanguage();
 
@@ -15,7 +14,7 @@ export default function MangaCard({ manga }) {
   const description = getDescription(manga) || "No description available.";
   const status = manga.status || "Unknown";
   const coverUrl = manga.coverUrl || "https://via.placeholder.com/200x300?text=No+Cover";
-  
+
   // Format the last update date
   const formatDate = (dateString) => {
     if (!dateString) return "Recently";
@@ -23,7 +22,7 @@ export default function MangaCard({ manga }) {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
@@ -34,7 +33,7 @@ export default function MangaCard({ manga }) {
   // Generate a random rating for demo purposes
   // In a real app, this would come from the API
   const rating = manga.rating || (Math.random() * 2 + 3).toFixed(1);
-  
+
   // Generate random views for demo purposes
   // In a real app, this would come from the API
   const views = manga.views || Math.floor(Math.random() * 10000 + 1000).toLocaleString();
@@ -68,35 +67,17 @@ export default function MangaCard({ manga }) {
   return (
     <Link to={`/manga/${id}`} className="block h-full">
       <div
-        className="card h-full flex flex-col cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl relative group overflow-hidden dark:bg-gray-900"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className="card group h-full flex flex-col cursor-pointer border border-transparent dark:bg-gray-900 transform transition duration-300 ease-out hover:scale-[1.03] hover:shadow-xl hover:border-primary/70 dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
       >
         {/* Cover Image Container - Fixed aspect ratio */}
         <div className="relative overflow-hidden bg-gray-200 aspect-[3/4]">
           <img
             src={imageError ? "https://via.placeholder.com/300x400?text=No+Cover" : coverUrl}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transform transition-transform duration-500 ease-out group-hover:scale-[1.04]"
             loading="lazy"
             onError={handleImageError}
           />
-
-          {/* Hover Overlay */}
-          <div
-            className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300 flex flex-col justify-end ${
-              isHovered ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="p-4 text-white">
-              <p className="text-sm line-clamp-3 mb-3">
-                {description}
-              </p>
-              <button className="w-full py-2.5 bg-primary text-white rounded-md font-medium hover:bg-primary-dark transition-all duration-200 transform hover:scale-105">
-                อ่านเลย
-              </button>
-            </div>
-          </div>
 
           {/* Status Badge */}
           <div className="absolute top-3 right-3 z-10">

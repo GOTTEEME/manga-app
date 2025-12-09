@@ -542,7 +542,7 @@ export default function MangaDetail() {
                 className={`bg-white rounded-lg shadow-sm overflow-hidden dark:bg-gray-900 dark:text-gray-100 ${chapters.length > 5 ? "max-h-[520px] overflow-y-auto" : ""
                   }`}
               >
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-gray-200 border border-gray-200 dark:border-gray-800">
                   {filteredChapters.map((chapter) => (
                     <Link
                       key={chapter.id}
@@ -607,35 +607,6 @@ export default function MangaDetail() {
                 <p className="text-gray-500">ไม่มีตอนที่ให้อ่าน</p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Reviews section: shown only when viewing chapters */}
-        {activeTab === "chapters" && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">รีวิว</h2>
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <svg
-                className="w-16 h-16 mx-auto text-gray-400 mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                ></path>
-              </svg>
-              <p className="text-gray-500 mb-4">
-                ยังไม่มีรีวิว มาเป็นคนแรกที่รีวิวการ์ตูนเรื่องนี้!
-              </p>
-              <button className="btn btn-primary">
-                เขียนรีวิว
-              </button>
-            </div>
           </div>
         )}
 

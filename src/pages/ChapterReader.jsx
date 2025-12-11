@@ -235,7 +235,8 @@ export default function ChapterReader({
   }, [prevHandler, nextHandler, navBusy, pagesIsFetching, safeCall]);
 
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-black text-white">
+
       <header
         className={`sticky top-0 z-20 bg-gradient-to-b from-black/90 to-black/40 backdrop-blur-sm transition-opacity duration-200 ${showChrome ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
@@ -333,6 +334,7 @@ export default function ChapterReader({
         className="flex-1 overflow-y-auto scroll-smooth bg-black"
         onClick={() => setShowChrome((prev) => !prev)}
       >
+
         <div className="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
           {pagesIsLoading && totalPages === 0 && (
             <div className="flex h-[60vh] items-center justify-center text-sm text-gray-300">

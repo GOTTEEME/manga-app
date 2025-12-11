@@ -4,6 +4,7 @@ import { getMangaById, getChaptersByMangaId, getMangaList } from "../api/mangade
 import LoadingSpinner from "../components/LoadingSpinner";
 import MangaCard from "../components/MangaCard";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useFavorites, isFavorite } from "../utils/favorites";
 
 export default function MangaDetail() {
   const { id } = useParams();
@@ -19,6 +20,9 @@ export default function MangaDetail() {
   const { getTitle, getDescription } = useLanguage();
   const [descExpanded, setDescExpanded] = useState(false);
   const navigate = useNavigate();
+  const { favorites, toggleFavorite } = useFavorites();
+
+  const inFavorites = isFavorite(favorites, id);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -443,8 +447,12 @@ export default function MangaDetail() {
                 >
                   เริ่มอ่าน
                 </button>
-                <button className="btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-3 px-6 rounded-lg transition-all duration-200">
-                  เพิ่มในคลัง
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(id)}
+                  className="btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+                >
+                  {inFavorites ? "ลบออกจากคลัง" : "เพิ่มในคลัง"}
                 </button>
               </div>
             </div>

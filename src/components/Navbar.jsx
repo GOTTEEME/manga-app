@@ -271,6 +271,7 @@ export default function Navbar({ openSearch, isDarkMode, toggleDarkMode }) {
     { to: "/", label: "หน้าแรก" },
     { to: '/doujin', label: 'โดจิน' },
     { to: "/completed", label: "จบแล้ว" },
+    { to: "/favorites", label: "คลัง" },
   ];
 
   return (

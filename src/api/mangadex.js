@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const API_BASE = import.meta.env.DEV ? "/api" : "https://api.mangadex.org";
-const UPLOADS_BASE = import.meta.env.DEV ? "/covers" : "https://uploads.mangadex.org";
+const API_BASE = "/api";
+const UPLOADS_BASE = "/covers";
 
 // Get manga list with various filters
 export async function getMangaList(options = {}) {
@@ -15,7 +15,7 @@ export async function getMangaList(options = {}) {
     status = [],
     tags = [],
     originalLanguage,
-    includedTags = [], // MangaDex expects UUIDs for tag filters; keep optional
+    includedTags = [], 
   } = options;
 
   try {

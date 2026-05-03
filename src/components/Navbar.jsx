@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useCallback } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search, Menu, X, ChevronDown, Sun, Moon, Check } from "lucide-react";
 
-// Reusable NavLink component
 const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
   const baseClasses = isMobile
     ? "block pl-3 pr-4 py-2 text-base font-medium transition-colors"
@@ -26,12 +26,12 @@ const NavLink = ({ to, children, isActive, isMobile = false, onClick }) => {
   );
 };
 
-// Categories Dropdown Component
 const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath }) => {
+  const navigate = useNavigate();
   const categories = [
-    { id: 'manga', label: 'มังงะ' },
-    { id: 'manhwa', label: 'มังฮวา' },
-    { id: 'manhua', label: 'มังฮัว' }
+    { id: "manga", label: "มังงะ" },
+    { id: "manhwa", label: "มังฮวา" },
+    { id: "manhua", label: "มังฮัว" },
   ];
 
   if (isMobile) {
@@ -40,14 +40,14 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
         <button
           onClick={onToggle}
           className={`w-full text-left pl-3 pr-4 py-2 text-base font-medium transition-colors flex items-center justify-between ${
-            activePath.startsWith('/category/')
+            activePath.startsWith("/category/")
               ? "text-primary border-l-4 border-primary bg-primary/5 dark:text-primary dark:bg-primary/20"
               : "text-gray-700 hover:text-primary hover:bg-gray-50 dark:text-gray-200 dark:hover:text-primary dark:hover:bg-gray-800"
-          } ${isOpen ? 'bg-gray-50 dark:bg-gray-800' : ''}`}
+          } ${isOpen ? "bg-gray-50 dark:bg-gray-800" : ""}`}
           aria-expanded={isOpen}
         >
           หมวดหมู่
-          <ChevronIcon isOpen={isOpen} />
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
         </button>
         {isOpen && (
           <div className="pl-4">
@@ -56,7 +56,7 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
                 key={id}
                 to={`/category/${id}`}
                 isActive={activePath === `/category/${id}`}
-                isMobile={true}
+                isMobile
                 onClick={onNavigate}
               >
                 {label}
@@ -72,50 +72,37 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
     <div className="relative">
       <button
         onClick={onToggle}
-        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-          activePath.startsWith('/category/')
-            ? 'text-primary bg-primary/5 dark:text-primary dark:bg-primary/20'
-            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:hover:text-gray-100 dark:hover:bg-gray-800'
-        } ${isOpen ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
+        className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          activePath.startsWith("/category/")
+            ? "text-primary bg-primary/5 dark:text-primary dark:bg-primary/20"
+            : "text-gray-700 hover:text-primary hover:bg-gray-100 dark:text-gray-200 dark:hover:text-gray-100 dark:hover:bg-gray-800"
+        } ${isOpen ? "bg-gray-100 dark:bg-gray-800" : ""}`}
         aria-expanded={isOpen}
       >
-        <span>หมวดหมู่</span>
-        <ChevronIcon isOpen={isOpen} />
+        หมวดหมู่
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </button>
+
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 dark:bg-gray-900">
+        <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-900 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden">
           <div className="py-1">
             {categories.map(({ id, label }) => {
               const isActiveItem = activePath === `/category/${id}`;
               return (
                 <button
                   key={id}
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     onNavigate();
-                    setTimeout(() => { window.location.href = `/category/${id}`; }, 0);
+                    navigate(`/category/${id}`);
                   }}
-                  className={`flex items-center w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors dark:hover:bg-gray-800 ${
+                  className={`flex items-center w-full px-4 py-2.5 text-sm text-left transition-colors ${
                     isActiveItem
-                      ? 'bg-primary text-white hover:bg-primary-dark'
-                      : 'text-gray-700 dark:text-gray-200'
+                      ? "bg-primary text-white"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
-                  <span>{label}</span>
-                  {isActiveItem && (
-                    <svg
-                      className="w-4 h-4 ml-auto"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
+                  {label}
+                  {isActiveItem && <Check className="w-4 h-4 ml-auto" />}
                 </button>
               );
             })}
@@ -126,58 +113,48 @@ const CategoriesDropdown = ({ isMobile, isOpen, onToggle, onNavigate, activePath
   );
 };
 
-// Reusable Chevron Icon
-const ChevronIcon = ({ isOpen }) => (
-  <svg
-    className={`ml-1 h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-// Search Bar Component
 const SearchBar = ({ onClick, isMobile = false }) => (
   <div className={isMobile ? "px-3 py-2" : "hidden md:block flex-1 max-w-md mx-8"}>
-    <div className="relative">
-      <input
-        type="text"
-        placeholder="ค้นหาการ์ตูน..."
-        onClick={onClick}
-        className="w-full py-2 px-4 pr-10 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:bg-white focus:border-primary transition-colors cursor-pointer"
-        readOnly
-      />
-      <button
-        onClick={onClick}
-        className="absolute inset-y-0 right-0 flex items-center pr-3"
-      >
-        <svg
-          className="h-5 w-5 text-gray-400 hover:text-primary transition-colors"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </button>
-    </div>
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 py-2 px-4 text-sm text-gray-400 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:border-primary/40 hover:bg-white dark:hover:bg-gray-700 transition-all duration-200"
+    >
+      <Search className="h-4 w-4 flex-shrink-0" />
+      <span>ค้นหาการ์ตูน...</span>
+    </button>
   </div>
 );
 
-// Mobile Menu Button
+const ThemeToggleButton = ({ isDarkMode, toggleDarkMode, isMobile = false }) => (
+  <button
+    type="button"
+    onClick={toggleDarkMode}
+    aria-label="Toggle dark mode"
+    className={
+      isMobile
+        ? "w-full flex items-center gap-3 pl-3 pr-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        : "p-2 rounded-lg text-gray-500 hover:text-primary hover:bg-gray-100 dark:text-gray-400 dark:hover:text-primary dark:hover:bg-gray-800 transition-colors"
+    }
+  >
+    {isDarkMode ? (
+      <>
+        <Sun className="h-5 w-5" />
+        {isMobile && <span>โหมดสว่าง</span>}
+      </>
+    ) : (
+      <>
+        <Moon className="h-5 w-5" />
+        {isMobile && <span>โหมดมืด</span>}
+      </>
+    )}
+  </button>
+);
+
 const MobileMenuButton = ({ isOpen, onClick, isDarkMode }) => (
   <div className="md:hidden flex items-center">
     <button
       onClick={onClick}
-      className={`inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary ${
+      className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 ${
         isDarkMode
           ? "text-gray-200 hover:text-primary hover:bg-gray-800"
           : "text-gray-700 hover:text-primary hover:bg-gray-100"
@@ -185,63 +162,18 @@ const MobileMenuButton = ({ isOpen, onClick, isDarkMode }) => (
       aria-expanded={isOpen}
     >
       <span className="sr-only">Open main menu</span>
-      <svg
-        className="block h-6 w-6"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-        />
-      </svg>
+      {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
     </button>
   </div>
 );
-
-const ThemeToggleButton = ({ isDarkMode, toggleDarkMode, isMobile = false }) => {
-  const wrapperClasses = isMobile
-    ? "w-full flex items-center justify-start px-3 py-2"
-    : "inline-flex items-center";
-
-  return (
-    <button
-      type="button"
-      onClick={toggleDarkMode}
-      className={`${wrapperClasses} focus:outline-none`}
-      aria-label="Toggle dark mode"
-    >
-      <div
-        className={`relative h-7 w-12 rounded-full transition-colors duration-200 ${
-          isDarkMode ? "bg-gray-700" : "bg-gray-300"
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 left-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transform transition-transform duration-200 ${
-            isDarkMode ? "translate-x-5" : "translate-x-0"
-          }`}
-        >
-          <span className="text-xs">{isDarkMode ? "🌙" : "☀️"}</span>
-        </span>
-      </div>
-    </button>
-  );
-};
 
 export default function Navbar({ openSearch, isDarkMode, toggleDarkMode }) {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
-  const toggleDropdown = useCallback((dropdownName) => {
-    setActiveDropdown(prev => {
-      if (prev === dropdownName) return null;
-      return dropdownName;
-    });
+  const toggleDropdown = useCallback((name) => {
+    setActiveDropdown((prev) => (prev === name ? null : name));
   }, []);
 
   const closeAllDropdowns = useCallback(() => {
@@ -249,9 +181,7 @@ export default function Navbar({ openSearch, isDarkMode, toggleDarkMode }) {
     setIsMenuOpen(false);
   }, []);
 
-  const handleNavigation = useCallback(() => {
-    closeAllDropdowns();
-  }, [closeAllDropdowns]);
+  const handleNavigation = useCallback(() => closeAllDropdowns(), [closeAllDropdowns]);
 
   const handleSearchClick = useCallback(() => {
     openSearch();
@@ -259,74 +189,65 @@ export default function Navbar({ openSearch, isDarkMode, toggleDarkMode }) {
   }, [openSearch, closeAllDropdowns]);
 
   const toggleMobileMenu = useCallback(() => {
-    const newIsMenuOpen = !isMenuOpen;
-    setIsMenuOpen(newIsMenuOpen);
-    if (!newIsMenuOpen) {
-      closeAllDropdowns();
-    }
-  }, [isMenuOpen, closeAllDropdowns]);
+    setIsMenuOpen((prev) => {
+      if (prev) closeAllDropdowns();
+      return !prev;
+    });
+  }, [closeAllDropdowns]);
 
-  // Navigation links data
   const navLinks = [
     { to: "/", label: "หน้าแรก" },
-    { to: '/doujin', label: 'โดจิน' },
+    { to: "/doujin", label: "โดจิน" },
     { to: "/completed", label: "จบแล้ว" },
     { to: "/favorites", label: "คลัง" },
   ];
 
   return (
-    <header className={isDarkMode ? "bg-gray-900 shadow-md sticky top-0 z-50" : "bg-white shadow-md sticky top-0 z-50"}>
+    <header
+      className={`sticky top-0 z-50 border-b transition-colors ${
+        isDarkMode
+          ? "bg-gray-900/95 backdrop-blur-md border-gray-800 shadow-md shadow-black/20"
+          : "bg-white/95 backdrop-blur-md border-gray-200 shadow-sm"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <span className={isDarkMode ? "text-2xl font-bold text-primary" : "text-2xl font-bold text-primary"}>Toonsoilnex</span>
+          <Link to="/" className="flex items-center flex-shrink-0">
+            <span className="text-2xl font-extrabold text-primary tracking-tight">Toonsoilnex</span>
           </Link>
 
-          {/* Desktop Search */}
           <SearchBar onClick={handleSearchClick} />
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-1">
             {navLinks.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                isActive={location.pathname === to}
-              >
+              <NavLink key={to} to={to} isActive={location.pathname === to}>
                 {label}
               </NavLink>
             ))}
 
-            {/* Categories Dropdown - Desktop */}
-            <div className="relative">
-              <CategoriesDropdown
-                isOpen={activeDropdown === 'categories'}
-                onToggle={() => toggleDropdown('categories')}
-                onNavigate={handleNavigation}
-                activePath={location.pathname}
-              />
-            </div>
-
-            <ThemeToggleButton
-              isDarkMode={isDarkMode}
-              toggleDarkMode={toggleDarkMode}
+            <CategoriesDropdown
+              isOpen={activeDropdown === "categories"}
+              onToggle={() => toggleDropdown("categories")}
+              onNavigate={handleNavigation}
+              activePath={location.pathname}
             />
+
+            <ThemeToggleButton isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           </nav>
 
-          {/* Mobile Menu Button */}
           <MobileMenuButton isOpen={isMenuOpen} onClick={toggleMobileMenu} isDarkMode={isDarkMode} />
         </div>
       </div>
 
-      {/* Mobile Menu Panel */}
       {isMenuOpen && (
-        <div className={isDarkMode ? "md:hidden bg-gray-900 border-t border-gray-700" : "md:hidden bg-white border-t border-gray-200"}>
+        <div
+          className={`md:hidden border-t ${
+            isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
+          }`}
+        >
           <div className="px-2 pt-2 pb-3 space-y-1">
-            {/* Mobile Search */}
             <SearchBar onClick={handleSearchClick} isMobile />
 
-            {/* Mobile Navigation Links */}
             {navLinks.map(({ to, label }) => (
               <NavLink
                 key={to}
@@ -339,20 +260,15 @@ export default function Navbar({ openSearch, isDarkMode, toggleDarkMode }) {
               </NavLink>
             ))}
 
-            <ThemeToggleButton
-              isDarkMode={isDarkMode}
-              toggleDarkMode={toggleDarkMode}
-              isMobile
-            />
-
-            {/* Mobile Categories Dropdown */}
             <CategoriesDropdown
               isMobile
-              isOpen={activeDropdown === 'mobileCategories'}
-              onToggle={() => toggleDropdown('mobileCategories')}
+              isOpen={activeDropdown === "mobileCategories"}
+              onToggle={() => toggleDropdown("mobileCategories")}
               onNavigate={handleNavigation}
               activePath={location.pathname}
             />
+
+            <ThemeToggleButton isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} isMobile />
           </div>
         </div>
       )}

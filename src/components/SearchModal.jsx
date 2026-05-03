@@ -1,7 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Search, X, Clock, ArrowRight } from "lucide-react";
 import { searchManga } from "../api/mangadex";
 import LoadingSpinner from "./LoadingSpinner";
+
+const statusLabel = (status) => {
+  const map = { ongoing: "กำลังดำเนิน", completed: "จบแล้ว", hiatus: "หยุดพัก", cancelled: "ยกเลิก" };
+  return map[status?.toLowerCase()] ?? status ?? "ไม่ทราบ";
+};
+
+const ratingLabel = (rating) => {
+  const map = { safe: "ปลอดภัย", suggestive: "แนะนำ", erotica: "18+", pornographic: "18+" };
+  return map[rating?.toLowerCase()] ?? rating;
+};
+
+const ratingColor = (rating) => {
+  const map = { safe: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400", suggestive: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" };
+  return map[rating?.toLowerCase()] ?? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400";
+};
 
 export default function SearchModal({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,53 +27,38 @@ export default function SearchModal({ isOpen, onClose }) {
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
 
-  // Focus input when modal opens
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (isOpen && inputRef.current) inputRef.current.focus();
   }, [isOpen]);
 
-  // Load search history from localStorage
   useEffect(() => {
-    const history = localStorage.getItem("searchHistory");
-    if (history) {
-      try {
-        setSearchHistory(JSON.parse(history));
-      } catch (e) {
-        console.error("Error parsing search history:", e);
-        setSearchHistory([]);
-      }
+    try {
+      const h = localStorage.getItem("searchHistory");
+      if (h) setSearchHistory(JSON.parse(h));
+    } catch {
+      setSearchHistory([]);
     }
   }, []);
 
-  // Handle search
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setSearchResults([]);
       setError(null);
       return;
     }
-
-    const delayedSearch = setTimeout(() => {
-      performSearch(searchQuery);
-    }, 500); // Debounce search
-
-    return () => clearTimeout(delayedSearch);
+    const t = setTimeout(() => performSearch(searchQuery), 500);
+    return () => clearTimeout(t);
   }, [searchQuery]);
 
   const performSearch = async (query) => {
-    if (query.trim() === "") return;
-    
+    if (!query.trim()) return;
     setLoading(true);
     setError(null);
-    
     try {
       const results = await searchManga(query, { limit: 10 });
       setSearchResults(results);
     } catch (err) {
-      console.error("Search error:", err);
-      setError(err.message || "Failed to search. Please try again.");
+      setError("ค้นหาไม่สำเร็จ กรุณาลองใหม่");
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -66,18 +67,11 @@ export default function SearchModal({ isOpen, onClose }) {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      // Add to search history
-      const newHistory = [
-        searchQuery,
-        ...searchHistory.filter((item) => item !== searchQuery).slice(0, 4),
-      ];
-      setSearchHistory(newHistory);
-      localStorage.setItem("searchHistory", JSON.stringify(newHistory));
-      
-      // Perform search
-      performSearch(searchQuery);
-    }
+    if (!searchQuery.trim()) return;
+    const newHistory = [searchQuery, ...searchHistory.filter((i) => i !== searchQuery).slice(0, 4)];
+    setSearchHistory(newHistory);
+    localStorage.setItem("searchHistory", JSON.stringify(newHistory));
+    performSearch(searchQuery);
   };
 
   const handleResultClick = () => {
@@ -87,193 +81,144 @@ export default function SearchModal({ isOpen, onClose }) {
     setError(null);
   };
 
-  const handleHistoryItemClick = (query) => {
-    setSearchQuery(query);
-    performSearch(query);
-  };
-
   const clearHistory = () => {
     setSearchHistory([]);
     localStorage.removeItem("searchHistory");
-  };
-
-  const handleInputChange = (e) => {
-    setSearchQuery(e.target.value);
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
+      <div className="flex items-start justify-center min-h-screen pt-16 px-4 pb-20">
+        {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
           onClick={onClose}
-        ></div>
+        />
 
-        {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            {/* Search Input */}
-            <form onSubmit={handleSearchSubmit} className="mb-4">
-              <div className="relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleInputChange}
-                  placeholder="Search for comics..."
-                  className="w-full py-3 px-4 pr-10 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:bg-white focus:border-primary transition-colors"
-                />
+        {/* Modal */}
+        <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden ring-1 ring-black/10 dark:ring-white/10">
+          {/* Search Input */}
+          <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-3">
+              <Search className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="ค้นหาการ์ตูน..."
+                className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 text-base focus:outline-none"
+              />
+              {searchQuery && (
                 <button
-                  type="submit"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
-                  disabled={loading}
+                  type="button"
+                  onClick={() => { setSearchQuery(""); setSearchResults([]); }}
+                  className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  {loading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary"></div>
-                  ) : (
-                    <svg
-                      className="h-5 w-5 text-gray-400 hover:text-primary transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      ></path>
-                    </svg>
-                  )}
+                  <X className="h-4 w-4" />
                 </button>
-              </div>
-            </form>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <span className="text-xs font-medium">ESC</span>
+              </button>
+            </div>
+          </form>
 
-            {/* Error Display */}
+          {/* Body */}
+          <div className="p-4 max-h-[60vh] overflow-y-auto">
             {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              <div className="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl text-sm">
                 {error}
               </div>
             )}
 
-            {/* Search Results */}
             {loading ? (
-              <div className="flex justify-center py-8">
-                <LoadingSpinner size="md" text="Searching..." />
+              <div className="flex justify-center py-10">
+                <LoadingSpinner size="md" text="กำลังค้นหา..." />
               </div>
             ) : searchResults.length > 0 ? (
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
-                  Search Results ({searchResults.length})
-                </h3>
-                <div className="max-h-96 overflow-y-auto">
-                  <div className="space-y-3">
-                    {searchResults.map((result) => (
-                      <Link
-                        key={result.id}
-                        to={`/manga/${result.id}`}
-                        onClick={handleResultClick}
-                        className="flex items-center p-3 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <img
-                          src={result.coverUrl}
-                          alt={result.title}
-                          className="w-12 h-16 object-cover rounded"
-                          onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/150x200?text=No+Cover";
-                          }}
-                        />
-                        <div className="ml-4 flex-1">
-                          <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
-                            {result.title}
-                          </h4>
-                          <p className="text-sm text-gray-500 truncate">{result.author}</p>
-                          <div className="flex items-center mt-1 space-x-2">
-                            <span className="text-xs text-gray-500">
-                              Rating: {result.rating || "N/A"}
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+                  ผลการค้นหา ({searchResults.length})
+                </p>
+                <div className="space-y-1">
+                  {searchResults.map((result) => (
+                    <Link
+                      key={result.id}
+                      to={`/manga/${result.id}`}
+                      onClick={handleResultClick}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+                    >
+                      <img
+                        src={result.coverUrl}
+                        alt={result.title}
+                        className="w-10 h-14 object-cover rounded-lg flex-shrink-0"
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/40x56?text=?"; }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
+                          {result.title}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{result.author}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                            {statusLabel(result.status)}
+                          </span>
+                          {result.contentRating && (
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${ratingColor(result.contentRating)}`}>
+                              {ratingLabel(result.contentRating)}
                             </span>
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                result.status === "Ongoing"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : result.status === "Completed"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {result.status}
-                            </span>
-                            {result.contentRating && (
-                              <span
-                                className={`text-xs px-2 py-1 rounded-full ${
-                                  result.contentRating === "safe"
-                                    ? "bg-green-100 text-green-800"
-                                    : result.contentRating === "suggestive"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {result.contentRating}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      </Link>
-                    ))}
-                  </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors flex-shrink-0" />
+                    </Link>
+                  ))}
                 </div>
               </div>
             ) : searchQuery ? (
-              <div className="text-center py-8">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No results found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Try searching with different keywords
-                </p>
+              <div className="text-center py-10">
+                <Search className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ไม่พบผลการค้นหา</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">ลองค้นหาด้วยคำอื่น</p>
+              </div>
+            ) : searchHistory.length > 0 ? (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    ประวัติการค้นหา
+                  </p>
+                  <button
+                    onClick={clearHistory}
+                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    ล้างทั้งหมด
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {searchHistory.map((query, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSearchQuery(query)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Clock className="w-3 h-3 opacity-60" />
+                      {query}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
-              /* Search History */
-              searchHistory.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-medium text-gray-900">Recent Searches</h3>
-                    <button
-                      onClick={clearHistory}
-                      className="text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {searchHistory.map((query, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleHistoryItemClick(query)}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
-                      >
-                        {query}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
+              <div className="text-center py-10">
+                <Search className="mx-auto h-10 w-10 text-gray-200 dark:text-gray-700 mb-3" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">พิมพ์ชื่อการ์ตูนที่ต้องการค้นหา</p>
+              </div>
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { User, Calendar, Clock, BookOpen, AlertCircle, ChevronRight, Heart, HeartOff } from "lucide-react";
 import { getMangaById, getChaptersByMangaId, getMangaList } from "../api/mangadex";
 import LoadingSpinner from "../components/LoadingSpinner";
 import MangaCard from "../components/MangaCard";
@@ -247,27 +248,10 @@ export default function MangaDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">
-            <svg
-              className="w-24 h-24 mx-auto"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Manga</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Link to="/" className="btn btn-primary">
-            Back to Home
-          </Link>
+          <AlertCircle className="w-20 h-20 mx-auto text-red-400 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">เกิดข้อผิดพลาด</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+          <Link to="/" className="btn btn-primary">กลับหน้าแรก</Link>
         </div>
       </div>
     );
@@ -277,11 +261,10 @@ export default function MangaDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Manga not found</h1>
-          <p className="text-gray-600 mb-6">The manga you're looking for doesn't exist or has been removed.</p>
-          <Link to="/" className="btn btn-primary">
-            Back to Home
-          </Link>
+          <BookOpen className="w-20 h-20 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">ไม่พบการ์ตูน</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">การ์ตูนนี้ไม่มีอยู่หรือถูกลบออกไปแล้ว</p>
+          <Link to="/" className="btn btn-primary">กลับหน้าแรก</Link>
         </div>
       </div>
     );
@@ -326,74 +309,22 @@ export default function MangaDetail() {
               </h1>
 
               <div className="flex flex-wrap gap-4 mb-6 text-sm">
-                <div className="flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    ></path>
-                  </svg>
-                  <span>Author: {manga.author}</span>
+                <div className="flex items-center gap-1.5">
+                  <User className="w-4 h-4 opacity-75" />
+                  <span>ผู้แต่ง: {manga.author}</span>
                 </div>
-                <div className="flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    ></path>
-                  </svg>
-                  <span>Year: {manga.year}</span>
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 opacity-75" />
+                  <span>ปี: {manga.year}</span>
                 </div>
-                <div className="flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                  </svg>
-                  <span>Updated: {formatDate(manga.updatedAt)}</span>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 opacity-75" />
+                  <span>อัปเดต: {formatDate(manga.updatedAt)}</span>
                 </div>
                 {manga.lastChapter && manga.lastChapter !== "Ongoing" && (
-                  <div className="flex items-center">
-                    <svg
-                      className="w-5 h-5 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      ></path>
-                    </svg>
-                    <span>Latest Chapter: {manga.lastChapter}</span>
+                  <div className="flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4 opacity-75" />
+                    <span>ตอนล่าสุด: {manga.lastChapter}</span>
                   </div>
                 )}
               </div>
@@ -450,8 +381,9 @@ export default function MangaDetail() {
                 <button
                   type="button"
                   onClick={() => toggleFavorite(id)}
-                  className="btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+                  className="inline-flex items-center gap-2 btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-3 px-6 rounded-lg transition-all duration-200"
                 >
+                  {inFavorites ? <HeartOff className="w-4 h-4" /> : <Heart className="w-4 h-4" />}
                   {inFavorites ? "ลบออกจากคลัง" : "เพิ่มในคลัง"}
                 </button>
               </div>
@@ -577,20 +509,7 @@ export default function MangaDetail() {
                             วางจำหน่ายเมื่อ {formatDate(chapter.publishAt)}
                           </p>
                         </div>
-                        <svg
-                          className="w-5 h-5 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 5l7 7-7 7"
-                          ></path>
-                        </svg>
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
                       </div>
                     </Link>
                   ))}

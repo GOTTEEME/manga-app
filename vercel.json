@@ -5,18 +5,6 @@
       "destination": "https://api.mangadex.org/:path*"
     },
     {
-      "source": "/covers/:path*",
-      "destination": "https://uploads.mangadex.org/:path*"
-    },
-    {
-      "source": "/data/:path*",
-      "destination": "https://uploads.mangadex.org/data/:path*"
-    },
-    {
-      "source": "/data-saver/:path*",
-      "destination": "https://uploads.mangadex.org/data-saver/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE = "/api";
-const UPLOADS_BASE = "/covers";
+const UPLOADS_BASE = "/api";
 
 // Get manga list with various filters
 export async function getMangaList(options = {}) {
@@ -354,14 +354,7 @@ export async function getChapterPages(chapterId, options = {}) {
     const { baseUrl, chapter } = res.data;
     const { hash, data, dataSaver } = chapter;
     
-    // In development, route through Vite proxy paths to avoid CORS/hotlink blocks.
-    const buildUrl = (kind, filename) => {
-      if (import.meta.env.DEV) {
-        // Use proxied routes configured in vite.config: /data and /data-saver
-        return `/${kind}/${hash}/${filename}`;
-      }
-      return `${baseUrl}/${kind}/${hash}/${filename}`;
-    };
+    const buildUrl = (kind, filename) => `/api/${kind}/${hash}/${filename}`;
 
     const pagesFull = (data || []).map((f) => buildUrl('data', f));
     const pagesSaver = (dataSaver || []).map((f) => buildUrl('data-saver', f));
